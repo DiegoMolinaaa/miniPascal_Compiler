@@ -18,6 +18,9 @@ public class Main {
             MiniPascalParser parser = new MiniPascalParser(tokens);
 
             ParseTree tree = parser.program();
+
+            MiniPascalASTVisitorPersonal visitor = new MiniPascalASTVisitorPersonal();
+            visitor.visit(tree);
             System.out.println("Compilación exitosa!");
         } catch (Exception e) {
             e.printStackTrace();

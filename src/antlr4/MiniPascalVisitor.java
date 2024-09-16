@@ -233,6 +233,12 @@ public interface MiniPascalVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFunctionDeclaration(MiniPascalParser.FunctionDeclarationContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link MiniPascalParser#procedureDeclaration}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitProcedureDeclaration(MiniPascalParser.ProcedureDeclarationContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link MiniPascalParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

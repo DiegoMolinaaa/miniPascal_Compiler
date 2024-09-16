@@ -135,6 +135,7 @@ procedureAndFunctionDeclarationPart
 
 procedureOrFunctionDeclaration
    : functionDeclaration
+   | procedureDeclaration
    ;
 
 formalParameterList
@@ -157,6 +158,10 @@ identifierList
 functionDeclaration
    : FUNCTION identifier formalParameterList COLON varType SEMICOLON block
    ;
+
+procedureDeclaration
+    : PROCEDURE identifier formalParameterList SEMICOLON block
+    ;
 
 statement
    : writeStatement
@@ -379,6 +384,7 @@ DOUBLE_DOT: '..';
 
 PROGRAM: 'program';
 FUNCTION: 'function';
+PROCEDURE: 'procedure';
 
 IF: 'if';
 THEN: 'then';

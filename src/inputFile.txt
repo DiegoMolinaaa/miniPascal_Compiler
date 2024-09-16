@@ -1,7 +1,54 @@
-program Example;
-var
-    x: integer;
+program ciclos;
+
+{declaramos las variables}
+var 
+  lenght, i, j, x, y, cont: Integer;
+  s: String;
+
+Procedure f(a, b: integer);
+Begin
+  { Implementación del procedimiento si es necesario }
+end;
+
+Function x(): Integer;
+Begin
+  x := 3;  { Corregido para devolver el valor adecuado en la función }
+end;
+
 begin
-    x := 42;
-    write('El valor de x es: ', x);
+  {iniciamos las variables}
+  lenght := 50;
+  x := 10;
+  y := 5;
+  cont := 1;
+
+  {Primer ciclo For}
+  For i := x Downto 1 Do
+  Begin
+    For j := y Downto 1 Do
+    Begin
+      { Instrucciones aquí si es necesario }
+    End;
+  End;
+
+  {reiniciamos el contador}
+  cont := 1;
+  {Segundo ciclo For}
+  For i := 1 To x Do
+    For j := 1 To y Do
+    Begin
+      cont := ( cont + 1 );
+    End;
+
+  {reiniciamos el contador}
+  cont := 1;
+
+  {Ciclo While}
+  While ( cont <> lenght+1 ) Do
+  Begin
+    writeln('Contador= ', cont);
+    cont := cont + 1;  { Incrementa el contador para evitar el ciclo infinito }
+  End;
+
+  writeln('Gracias por usar Pascal!');
 end.
