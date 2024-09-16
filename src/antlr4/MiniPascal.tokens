@@ -58,6 +58,8 @@ NIL=57
 CONST=58
 CHR=59
 AT=60
+TRUE=61
+FALSE=62
 'begin'=1
 'end'=2
 ':='=9
