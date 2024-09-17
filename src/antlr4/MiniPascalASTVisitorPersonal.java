@@ -195,10 +195,200 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
         return null;
     }
 
+    @Override
+    public Void visitCompoundStatement(MiniPascalParser.CompoundStatementContext ctx) {
+        System.out.println("  Compound Statement:");
+        visit(ctx.statements());
+        return null;
+    }
 
+    @Override
+    public Void visitStatements(MiniPascalParser.StatementsContext ctx) {
+        if(ctx == null){
+            return null;
+        }
+        for (MiniPascalParser.StatementContext statementContext : ctx.statement()) {
+            visit(statementContext);
+        }
+        return null;
+    }
 
+    @Override
+    public Void visitStatement(MiniPascalParser.StatementContext ctx) {
+        if(ctx == null){
+            return null;
+        }
+        visit(ctx.getChild(0));
+        return null;
+    }
 
+    @Override
+    public Void visitAssignmentStatement(MiniPascalParser.AssignmentStatementContext ctx) {
+        System.out.println("    Assignment Statement:");
+        System.out.println("        Assigning value of " + ctx.expression().getText() + " to variable " + ctx.variable().getText());
+        return null;
+    }
 
+    @Override
+    public Void visitIfStatement(MiniPascalParser.IfStatementContext ctx) {
+        System.out.println("    If Statement:");
+        System.out.println("      Condition:");
+        System.out.println("        " + ctx.expression().getText());
+        System.out.println("      Then:");
+        visit(ctx.statement(0));
+        if(ctx.ELSE() != null){
+            System.out.println("      Else:");
+            visit(ctx.statement(1));
+        }
+        return null;
+    }
 
+    @Override
+    public Void visitWhileStatement(MiniPascalParser.WhileStatementContext ctx) {
+        System.out.println("    While Statement:");
+        System.out.println("      Condition:");
+        System.out.println("        " + ctx.expression().getText());
+        System.out.println("      Do:");
+        visit(ctx.statement());
+        return null;
+    }
 
+    @Override
+    public Void visitForStatement(MiniPascalParser.ForStatementContext ctx) {
+        System.out.println("    For Statement:");
+        System.out.println("      Identifier:");
+        System.out.println("        " + ctx.identifier().getText());
+        System.out.println("      Initial Value:");
+        visit(ctx.forList().initialValue());
+        System.out.println("      Final Value:");
+        visit(ctx.forList().finalValue());
+        System.out.println("      Do:");
+        visit(ctx.statement());
+        return null;
+    }
+
+    @Override
+    public Void visitInitialValue(MiniPascalParser.InitialValueContext ctx) {
+        System.out.println("        " + ctx.getText());
+        return null;
+    }
+
+    @Override
+    public Void visitFinalValue(MiniPascalParser.FinalValueContext ctx) {
+        System.out.println("        " + ctx.getText());
+        return null;
+    }
+
+    @Override
+    public Void visitWriteStatement(MiniPascalParser.WriteStatementContext ctx) {
+        System.out.println("    Write Statement:");
+        System.out.print("      " + ctx.writeParam2().getText());
+        if(ctx.writeParam() != null){
+            visit(ctx.writeParam());
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitWriteParam(MiniPascalParser.WriteParamContext ctx) {
+        if (ctx.varValue() != null) {
+            visit(ctx.varValue());
+        } else if (ctx.identifier() != null) {
+            System.out.println("Variable Identifier: " + ctx.identifier().getText());
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitVarValue(MiniPascalParser.VarValueContext ctx) {
+        if (ctx.string() != null) {
+            System.out.println("String Value: " + ctx.string().getText());
+            visit(ctx.string());
+        } else if (ctx.boolean_() != null) {
+            System.out.println("Boolean Value: " + ctx.boolean_());
+            visit(ctx.boolean_());
+        } else if (ctx.char_() != null) {
+            System.out.println("Char Value: " + ctx.char_().getText());
+            visit(ctx.char_());
+        } else if (ctx.integer() != null) {
+            System.out.println("Integer Value: " + ctx.integer().getText());
+            visit(ctx.integer());
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitString(MiniPascalParser.StringContext ctx) {
+        System.out.println("        " + ctx.getText());
+        return null;
+    }
+
+    @Override
+    public Void visitBoolean(MiniPascalParser.BooleanContext ctx) {
+        System.out.println("        " + ctx.getText());
+        return null;
+    }
+
+    @Override
+    public Void visitChar(MiniPascalParser.CharContext ctx) {
+        System.out.println("        " + ctx.getText());
+        return null;
+    }
+
+    @Override
+    public Void visitInteger(MiniPascalParser.IntegerContext ctx) {
+        System.out.println("        " + ctx.getText());
+        return null;
+    }
+
+    @Override
+    public Void visitReadStatement(MiniPascalParser.ReadStatementContext ctx) {
+        System.out.println("    Read Statement:");
+        visit(ctx.readParam());
+        return null;
+    }
+
+    @Override
+    public Void visitReadParam(MiniPascalParser.ReadParamContext ctx) {
+        System.out.println("      " + ctx.identifier().getText());
+        return null;
+    }
+
+    @Override
+    public Void visitFunctionDesignator(MiniPascalParser.FunctionDesignatorContext ctx) {
+        System.out.println("    Function Designator:");
+        System.out.println("      " + ctx.identifier().getText());
+        System.out.println("      Parameters:");
+        visit(ctx.parameterList());
+        return null;
+    }
+
+    @Override
+    public Void visitParameterList(MiniPascalParser.ParameterListContext ctx) {
+        if(ctx == null){
+            System.out.println("        No parameters");
+            return null;
+        }
+        for (MiniPascalParser.ActualParameterContext actualParameterContext : ctx.actualParameter()) {
+            visit(actualParameterContext);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitActualParameter(MiniPascalParser.ActualParameterContext ctx) {
+        System.out.println("        " + ctx.getText());
+        return null;
+    }
+
+    @Override
+    public Void visitExpression(MiniPascalParser.ExpressionContext ctx) {
+        System.out.println("    Expression:");
+        visit(ctx.simpleExpression());
+        if(ctx.relationaloperator() != null){
+            System.out.println("      " + ctx.relationaloperator().getText());
+            visit(ctx.simpleExpression());
+        }
+        return null;
+    }
 }

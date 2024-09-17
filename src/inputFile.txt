@@ -1,5 +1,10 @@
 program ciclos;
 
+{declaramos las constantes}
+const
+  WELCOME_MESSAGE = 'Bienvenido a MiniPascal!';
+  CHAR_EXAMPLE = 'A';
+
 {declaramos las variables}
 var 
   lenght, i, j, x, y, cont: Integer;
@@ -50,5 +55,6 @@ begin
     cont := cont + 1;  { Incrementa el contador para evitar el ciclo infinito }
   End;
 
+  read(s);
   writeln('Gracias por usar Pascal!');
 end.

@@ -33,11 +33,9 @@ constantChr
 constant
    : unsignedNumber
    | sign unsignedNumber
-   | identifier
-   | sign identifier
    | string
+   | char
    | constantChr
-   | varType
    ;
 
 varType
@@ -93,6 +91,9 @@ char
    : CHAR
    ;
 
+boolean
+    : BOOLEAN
+    ;
 integer
    : INTEGER
    ;
@@ -189,6 +190,7 @@ varValue
    : string
    | char
    | integer
+   | boolean
    ;
 
 readStatement: read L_PAREN readParam R_PAREN;
@@ -406,6 +408,11 @@ BOOLEAN_: 'BOOLEAN';
 CHAR_: 'CHAR';
 STRING_: 'STRING';
 
+NIL: 'NIL';
+CONST: 'CONST';
+CHR: 'CHR';
+AT: 'AT';
+
 READLN: 'READLN';
 READ: 'READ';
 WRITELN: 'WRITELN';
@@ -413,7 +420,3 @@ WRITE: 'WRITE';
 
 ID: [a-zA-Z][a-zA-Z0-9_]*;
 
-NIL: 'NIL';
-CONST: 'CONST';
-CHR: 'CHR';
-AT: 'AT';

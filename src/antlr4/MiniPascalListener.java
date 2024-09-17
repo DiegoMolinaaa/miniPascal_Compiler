@@ -228,6 +228,16 @@ public interface MiniPascalListener extends ParseTreeListener {
 	 */
 	void exitChar(MiniPascalParser.CharContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link MiniPascalParser#boolean}.
+	 * @param ctx the parse tree
+	 */
+	void enterBoolean(MiniPascalParser.BooleanContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link MiniPascalParser#boolean}.
+	 * @param ctx the parse tree
+	 */
+	void exitBoolean(MiniPascalParser.BooleanContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link MiniPascalParser#integer}.
 	 * @param ctx the parse tree
 	 */

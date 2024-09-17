@@ -143,6 +143,12 @@ public interface MiniPascalVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitChar(MiniPascalParser.CharContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link MiniPascalParser#boolean}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBoolean(MiniPascalParser.BooleanContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link MiniPascalParser#integer}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
