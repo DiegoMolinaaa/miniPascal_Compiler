@@ -12,7 +12,7 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
         visit(ctx.programHeading());
         System.out.println("  Block:");
         visit(ctx.block());
-        System.out.println("End of Program");
+        System.out.println("\nEnd of Program");
         return null;
     }
 
