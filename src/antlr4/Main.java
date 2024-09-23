@@ -19,6 +19,7 @@ public class Main {
         msgTraducido = msgTraducido.replace("missing","falta");
         msgTraducido = msgTraducido.replace("mismatched input","entrada incorrecta");
         msgTraducido = msgTraducido.replace("at","en");
+        msgTraducido = msgTraducido.replace("alterneniva","alternativa");
         return msgTraducido;
     }
     public static void main(String[] args) throws IOException {
