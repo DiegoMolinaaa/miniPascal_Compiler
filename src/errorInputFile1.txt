@@ -1,60 +1,22 @@
-program ciclos;
+program IdentificadoresValidos;
 
-{declaramos las constantes}
-conts {error}
-  WELCOME_MESSAGE = 'Bienvenido a MiniPascal!';
-  CHAR_EXAMPLE = 'A';
+{ Este programa declara variables con identificadores válidos en Pascal }
 
-{declaramos las variables}
 var
-  lenght, i, j, x, y, cont: Integer;
-  s: String;
-
-Procedure f(a, b: integer);
-Begin
-  { Implementación del procedimiento si es necesario }
-end;
-
-Function x(): Integer;
-Begin
-  x := 3;  { Corregido para devolver el valor adecuado en la función }
-end;
+  num1: integer;            { Identificador válido: empieza con una letra y sigue con dígitos }
+  valorFinal: integer;     { Identificador válido: empieza con "" y sigue con letras y dígitos }
+  resultado_total: integer; { Identificador válido: letras y guión bajo }
+  valor2: integer;          { Identificador válido: empieza con una letra y sigue con dígitos }
+  men$saje: string;          { Identificador válido: solo letras }
 
 begin
-  {iniciamos las variables}
-  lenght := 50;
-  x := 10;
-  y := 5;
-  cont := 1;
+  { Asignando valores a las variables }
+  num1 := 10;
+  _valorFinal := 20;
+  resultado_total := num1 + _valorFinal;
+  valor2 := 5;
+  mensaje := 'Suma total: ';
 
-  {Primer ciclo For}
-  For i := x Downto 1 Do
-  Begin
-    For j := y Downto 1 Do
-    Begin
-      { Instrucciones aquí si es necesario }
-    End;
-  End;
-
-  {reiniciamos el contador}
-  cont := 1;
-  {Segundo ciclo For}
-  For i := 1 To x Do
-    For j := 1 To y Do
-    Begin
-      cont := ( cont + 1 );
-    End;
-
-  {reiniciamos el contador ERROR FALTA ;}
-  cont := 1
-
-  {Ciclo While}
-  While ( cont <> lenght+1 ) Do
-  Begin
-    writeln('Contador= ', cont);
-    cont := cont + 1;  { Incrementa el contador para evitar el ciclo infinito }
-  End;
-
-  read(s);
-  writeln('Gracias por usar Pascal!');
+  { Mostrando los resultados }
+  writeln('mensaje', resultado_total);
 end.

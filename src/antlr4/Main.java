@@ -24,7 +24,7 @@ public class Main {
     }
     public static void main(String[] args) {
         try {
-            String inputFile = "src/errorInputFile2.txt";
+            String inputFile = "src/errorInputFile1.txt";
             CharStream input = CharStreams.fromPath(Paths.get(inputFile));
             MiniPascalLexer lexer = new MiniPascalLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);

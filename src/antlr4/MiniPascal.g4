@@ -418,5 +418,5 @@ READ: 'READ';
 WRITELN: 'WRITELN';
 WRITE: 'WRITE';
 
-ID: [a-zA-Z][a-zA-Z0-9_]*;
+ID: [a-zA-Z_][a-zA-Z0-9_]*;
 
