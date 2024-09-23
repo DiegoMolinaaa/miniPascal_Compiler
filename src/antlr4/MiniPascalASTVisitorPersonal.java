@@ -43,13 +43,19 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
         //System.out.println("        Grupo de Parametros:");
         if (ctx.identifierList() != null) {
             System.out.println("          Identificadores:");
+            System.out.print("            ");
             for (MiniPascalParser.IdentifierContext identifier : ctx.identifierList().identifier()) {
-                System.out.println("            " + identifier.getText());
+                if(identifier == ctx.identifierList().identifier().get(ctx.identifierList().identifier().size()-1)){
+                    System.out.print(identifier.getText());
+                }else {
+                    System.out.print(identifier.getText() + ", ");
+                }
             }
         } else {
             //System.out.println("          Sin identificadores");
         }
-        System.out.println("          Tipo:");
+        System.out.println();
+        System.out.println("          Tipo: ");
         if (ctx.type_() != null) {
             visit(ctx.type_());
         } else {
@@ -61,9 +67,9 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
     @Override
     public Void visitType_(MiniPascalParser.Type_Context ctx) {
         if (ctx.getChildCount() == 1) {
-            System.out.println("        " + ctx.getChild(0).getText());
+            System.out.println("            "+ctx.getChild(0).getText());
         } else {
-            System.out.println("        Arreglo");
+            System.out.println("        Arreglo ");
             System.out.println("          " + ctx.getChild(1).getText());
             System.out.println("          " + ctx.getChild(3).getText());
         }
@@ -120,8 +126,10 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
         System.out.println("    Declaracion de Procedure:");
         System.out.println("      Encabezado de Procedure:");
         System.out.println("      " + ctx.identifier().getText());
-        System.out.println("      Parametros:");
-        visit(ctx.formalParameterList());
+        if(ctx.formalParameterList() != null){
+            System.out.println("      Parametros:");
+            visit(ctx.formalParameterList());
+        }
         return null;
     }
 
@@ -130,8 +138,10 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
         System.out.println("    Declaracion de Function:");
         System.out.println("      Encabezado de Function:");
         System.out.println("      " + ctx.identifier().getText());
-        System.out.println("      Parametros:");
-        visit(ctx.formalParameterList());
+        if(ctx.formalParameterList() != null){
+            System.out.println("      Parametros:");
+            visit(ctx.formalParameterList());
+        }
         System.out.println("      Tipo Retorno:");
         System.out.println("      " + ctx.varType().getText());
         return null;
@@ -168,13 +178,19 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
         //System.out.println("        Grupo de Parametros:");
         if (ctx.identifierList() != null) {
             System.out.println("          Identificadores:");
+            System.out.print("            ");
             for (MiniPascalParser.IdentifierContext identifier : ctx.identifierList().identifier()) {
-                System.out.println("            " + identifier.getText());
+                if(identifier == ctx.identifierList().identifier().get(ctx.identifierList().identifier().size()-1)){
+                    System.out.print(identifier.getText());
+                }else {
+                    System.out.print(identifier.getText() + ", ");
+                }
             }
         } else {
             //System.out.println("          Sin identificadores");
         }
-        System.out.println("          Tipo:");
+        System.out.println();
+        System.out.println("          Tipo: ");
         if (ctx.varType() != null) {
             visit(ctx.varType());
         } else {
@@ -186,9 +202,9 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
     @Override
     public Void visitVarType(MiniPascalParser.VarTypeContext ctx) {
         if (ctx.getChildCount() == 1) {
-            System.out.println("        " + ctx.getChild(0).getText());
+            System.out.println("            "+ctx.getChild(0).getText());
         } else {
-            System.out.println("        ARREGLO");
+            System.out.println("            ARREGLO ");
             System.out.println("          " + ctx.getChild(1).getText());
             System.out.println("          " + ctx.getChild(3).getText());
         }

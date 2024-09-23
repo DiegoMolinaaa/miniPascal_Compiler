@@ -45,8 +45,7 @@ begin
       cont := ( cont + 1 );
     End;
 
-  {reiniciamos el contador ERROR FALTA ;}
-  cont := 1
+  cont := 1;
 
   {Ciclo While}
   While ( cont <> lenght+1 ) Do

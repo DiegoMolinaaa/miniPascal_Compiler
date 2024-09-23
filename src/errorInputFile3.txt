@@ -1,15 +1,14 @@
-program FlujoIncorrecto;
+program SintaxisIncorrecta;
 var
-  numero: integer;
+  x: integer;
 
 begin
-  numero := 10;
+  x := 10;
 
-  if numero > 5 then
-    write('El numero es mayor a 5');
-  else
-    write('El numero es menor o igual a 5');  { Error de sintaxis: else sin 'if' }
+  if x > 5      { Error: falta el 'then' }
+    write('Mayor que 5');
+  end;          { Error: 'end' sin un 'begin' correspondiente }
 
-  for i := 1 to 10 do    { Error: Variable i no está declarada }
+  for i := 1 to 10 do
     write(i);
 end.

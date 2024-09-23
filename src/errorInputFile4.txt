@@ -1,22 +1,11 @@
-program IdentificadoresValidos;
-
-{ Este programa declara variables con identificadores válidos en Pascal }
-
+program LexicoInvalido;
 var
-  num1: integer;            { Identificador válido: empieza con una letra y sigue con dígitos }
-  valorFinal: integer;     { Identificador válido: empieza con "" y sigue con letras y dígitos }
-  resultado_total: integer; { Identificador válido: letras y guión bajo }
-  valor2: integer;          { Identificador válido: empieza con una letra y sigue con dígitos }
-  men$saje: string;          { Identificador válido: solo letras }
+  1variable: integer;   { Error: nombre de variable no puede empezar con un número }
+  resultado$: integer;   { Error: símbolo $ no permitido }
 
 begin
-  { Asignando valores a las variables }
-  num1 := 10;
-  _valorFinal := 20;
-  resultado_total := num1 + _valorFinal;
-  valor2 := 5;
-  mensaje := 'Suma total: ';
+  1variable := 10;
+  resultado$ := 1variable + 20;
 
-  { Mostrando los resultados }
-  writeln('mensaje', resultado_total);
+  write('Resultado: ', resultado$);
 end.
