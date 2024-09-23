@@ -1,0 +1,17 @@
+{este programa es de prueba}
+program factorial;
+var limite:Char;
+begin
+var i, resultado: Integer; {el error es debido a que el begin está colocado antes}
+	limite := 5;
+	resultado = 1; { Debe de ser := }
+	begin
+		For i := limite Downto 1 Do;
+			Begin
+				resultado := i*resultado;
+			End;
+	end;
+	Begin
+		writeln(Factorial de 5: ); { Debe de ir entre ''}
+	end;
+end.

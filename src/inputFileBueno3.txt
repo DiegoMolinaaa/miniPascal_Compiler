@@ -1,0 +1,19 @@
+program MultiplicaYSuma;
+var
+  n, resultado: integer;
+
+begin
+  n := 5;
+  resultado := 1;
+
+  while n > 0 do
+  begin
+    if n mod 2 = 0 then
+      resultado := resultado * 2
+    else
+      resultado := resultado + 1;
+    n := n - 1;
+  end;
+
+  write('El resultado es: ', resultado);
+end.

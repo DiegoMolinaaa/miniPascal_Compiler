@@ -1,0 +1,21 @@
+program SumaNumeros;
+var
+  i, x: integer;
+  total: integer;
+
+function Sumar(a, b: integer): integer;
+begin
+  Sumar := a + b;
+end;
+
+begin
+  x := 10;
+  total := 0;
+
+  for i := 1 to x do
+  begin
+    total := Sumar(total, i);
+  end;
+
+  write('El total es: ', total);
+end.

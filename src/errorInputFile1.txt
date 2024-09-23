@@ -1,12 +1,12 @@
 program ciclos;
 
 {declaramos las constantes}
-const
+conts {error}
   WELCOME_MESSAGE = 'Bienvenido a MiniPascal!';
   CHAR_EXAMPLE = 'A';
 
 {declaramos las variables}
-var 
+var
   lenght, i, j, x, y, cont: Integer;
   s: String;
 
@@ -45,8 +45,8 @@ begin
       cont := ( cont + 1 );
     End;
 
-  {reiniciamos el contador}
-  cont := 1;
+  {reiniciamos el contador ERROR FALTA ;}
+  cont := 1
 
   {Ciclo While}
   While ( cont <> lenght+1 ) Do
