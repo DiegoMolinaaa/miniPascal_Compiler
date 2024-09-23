@@ -1,11 +1,11 @@
 program LexicoInvalido;
 var
   1variable: integer;   { Error: nombre de variable no puede empezar con un número }
-  resultado$: integer;   { Error: símbolo $ no permitido }
+  resultado#: integer;   { Error: símbolo # no permitido }
 
 begin
   1variable := 10;
-  resultado$ := 1variable + 20;
+  resultado# := 1variable + 20;
 
   write('Resultado: ', resultado$);
 end.
