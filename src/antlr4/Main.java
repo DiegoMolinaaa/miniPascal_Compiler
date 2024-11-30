@@ -25,7 +25,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         String nombreArchivo = "";
         File archivo = null;
-
+        TablaSimbolos tablaSimbolos = new TablaSimbolos();
         // Seleccionar el programa cno filechooser
         try {
             JFileChooser fileChooser = new JFileChooser("./src/");
@@ -74,8 +74,9 @@ public class Main {
 
                 // Imprimir resultado de la compilacion
                 if (erroresEncontrados.isEmpty()) {
-                    MiniPascalASTVisitorPersonal visitor = new MiniPascalASTVisitorPersonal();
+                    MiniPascalASTVisitorPersonal visitor = new MiniPascalASTVisitorPersonal(tablaSimbolos);
                     visitor.visit(tree);
+                    tablaSimbolos.printTablaSimbolos();
                     System.out.println("\nCompilación exitosa!");
                 }
                 else {

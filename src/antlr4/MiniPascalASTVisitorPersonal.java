@@ -3,10 +3,21 @@ package antlr4;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.util.ArrayList;
+
 public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> {
+    private TablaSimbolos tablaSimbolos;
+
+    private String currentScope = "global"; // Manejo del alcance
+    private String previousScope = "";
+
+    public MiniPascalASTVisitorPersonal(TablaSimbolos tablaSimbolos) {
+        this.tablaSimbolos = tablaSimbolos;
+    }
 
     @Override
     public Void visitProgram(MiniPascalParser.ProgramContext ctx) {
+        tablaSimbolos.enterScope(currentScope);
         System.out.println("Program:");
         System.out.println("  Encabezado Programa:");
         visit(ctx.programHeading());
@@ -41,10 +52,17 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
             return null;
         }
         //System.out.println("        Grupo de Parametros:");
+        String tipo = ctx.type_().getText();
         if (ctx.identifierList() != null) {
             System.out.println("          Identificadores:");
             System.out.print("            ");
             for (MiniPascalParser.IdentifierContext identifier : ctx.identifierList().identifier()) {
+                String nombre = identifier.getText();
+                if (!tablaSimbolos.addSimbolo(new Simbolo(nombre, tipo, currentScope, null, "variable"))) { // Añadir a la tabla
+                    System.err.println("Error: Variable '" + nombre + "' ya declarada en el ámbito '" + currentScope + "'.");
+                } else {
+                    System.out.println("Variable '" + nombre + "' de tipo '" + tipo + "' añadida.");
+                }
                 if(identifier == ctx.identifierList().identifier().get(ctx.identifierList().identifier().size()-1)){
                     System.out.print(identifier.getText());
                 }else {
@@ -67,11 +85,14 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
     @Override
     public Void visitType_(MiniPascalParser.Type_Context ctx) {
         if (ctx.getChildCount() == 1) {
+            System.out.println("        Child 1");
             System.out.println("            "+ctx.getChild(0).getText());
+            System.out.println("        -------------");
         } else {
             System.out.println("        Arreglo ");
             System.out.println("          " + ctx.getChild(1).getText());
             System.out.println("          " + ctx.getChild(3).getText());
+            System.out.println("        -------------");
         }
         return null;
     }
@@ -90,11 +111,14 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
 
     @Override
     public Void visitConstantDefinition(MiniPascalParser.ConstantDefinitionContext ctx) {
-        //System.out.println("    Definir Constante:");
-        System.out.println("      Identificador:");
-        System.out.println("        " + ctx.identifier().getText());
-        System.out.println("      Valor:");
-        System.out.println("        " + ctx.constant().getText());
+        String name = ctx.identifier().getText();
+        String value = ctx.constant().getText();
+
+        if (!tablaSimbolos.addSimbolo(new Simbolo(name, "const", currentScope, null, "constant"))) {
+            System.out.println("Error: Constante '" + name + "' ya declarada.");
+        } else {
+            System.out.println("Constante '" + name + "' con valor '" + value + "' añadida.");
+        }
         return null;
     }
 
@@ -122,28 +146,98 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
     }
 
     @Override
-    public Void visitProcedureDeclaration(MiniPascalParser.ProcedureDeclarationContext ctx) {
-        System.out.println("    Declaracion de Procedure:");
-        System.out.println("      Encabezado de Procedure:");
+    public Void visitFunctionDeclaration(MiniPascalParser.FunctionDeclarationContext ctx) {
+
+        ArrayList<Simbolo> parametros = new ArrayList();
+        String procedureName = ctx.identifier().getText();
+        String previousScope = currentScope;
+        currentScope = procedureName;
+        tablaSimbolos.enterScope(currentScope);
+        System.out.println("    Declaracion de Function:");
+        System.out.println("      Encabezado de Function:");
         System.out.println("      " + ctx.identifier().getText());
-        if(ctx.formalParameterList() != null){
-            System.out.println("      Parametros:");
-            visit(ctx.formalParameterList());
+        String functionName = ctx.identifier().getText();
+        if (ctx.formalParameterList() != null) {
+            System.out.println("  Parámetros:");
+            for (MiniPascalParser.FormalParameterSectionContext paramCtx : ctx.formalParameterList().formalParameterSection()) {
+                if(paramCtx.parameterGroup().identifierList() == null){
+                    System.out.println("Sin Parametros");
+                }
+                else{
+                    System.out.println("Encuentra Parametros");
+                    // Extraemos la lista de identificadores (pueden ser múltiples) y su tipo
+                    String tipo = paramCtx.parameterGroup().varType().getText();
+                    for (MiniPascalParser.IdentifierContext idCtx : paramCtx.parameterGroup().identifierList().identifier()) {
+                        String nombreParametro = idCtx.getText();
+
+                        // Agregamos cada parámetro como un símbolo
+                        Simbolo parametro = new Simbolo(nombreParametro, tipo, currentScope, null, "parametro");
+                        parametros.add(parametro);
+
+                        // Imprimimos el parámetro
+                        System.out.println("    - " + nombreParametro + " : " + tipo);
+                    }
+                }
+            }
         }
+        System.out.println("      Tipo Retorno:");
+        System.out.println("      " + ctx.varType().getText());
+        String returnType = ctx.varType().getText();
+        if(!tablaSimbolos.addSimbolo(new SimboloFuncion(functionName, returnType, currentScope, parametros))){
+            System.out.println("Error: Funcion '" + functionName + "' ya declarado en el ámbito '" + previousScope + "'.");
+
+        }
+        currentScope = previousScope;
+        tablaSimbolos.exitScope();
         return null;
     }
 
     @Override
-    public Void visitFunctionDeclaration(MiniPascalParser.FunctionDeclarationContext ctx) {
-        System.out.println("    Declaracion de Function:");
-        System.out.println("      Encabezado de Function:");
-        System.out.println("      " + ctx.identifier().getText());
-        if(ctx.formalParameterList() != null){
-            System.out.println("      Parametros:");
-            visit(ctx.formalParameterList());
+
+
+    public Void visitProcedureDeclaration(MiniPascalParser.ProcedureDeclarationContext ctx) {
+        ArrayList<Simbolo> parametrosProcedimiento = new ArrayList();
+        String procedureName = ctx.identifier().getText();
+        System.out.println("Entrando en el procedimiento: " + procedureName);
+
+        // Cambiar de ámbito
+        String previousScope = currentScope;
+        currentScope = procedureName;
+        tablaSimbolos.enterScope(currentScope);
+        System.out.println("    Declaracion de Procedure:");
+        System.out.println("      Encabezado de Procedure:");
+        // Añadir el procedimiento como símbolo
+
+
+        if (ctx.formalParameterList().formalParameterSection() != null) {
+            System.out.println("  Parámetros:");
+            for (MiniPascalParser.FormalParameterSectionContext paramCtx : ctx.formalParameterList().formalParameterSection()) {
+                // Extraemos la lista de identificadores (pueden ser múltiples) y su tipo
+                if(paramCtx.parameterGroup().identifierList() == null){
+                    System.out.println("Sin Parametros");
+                }
+                else {
+                    String tipo = paramCtx.parameterGroup().varType().getText();
+                    for (MiniPascalParser.IdentifierContext idCtx : paramCtx.parameterGroup().identifierList().identifier()) {
+
+                        String nombreParametro = idCtx.getText();
+
+                        // Agregamos cada parámetro como un símbolo
+                        Simbolo parametro = new Simbolo(nombreParametro, tipo, currentScope, null, "parametro");
+                        parametrosProcedimiento.add(parametro);
+
+                        // Imprimimos el parámetro
+                        System.out.println("    - " + nombreParametro + " : " + tipo);
+                    }
+                }
+            }
         }
-        System.out.println("      Tipo Retorno:");
-        System.out.println("      " + ctx.varType().getText());
+        if (!tablaSimbolos.addSimbolo(new SimboloFuncion( procedureName, "procedure", previousScope, parametrosProcedimiento))) {
+            System.out.println("Error: Procedimiento '" + procedureName + "' ya declarado en el ámbito '" + previousScope + "'.");
+        }
+        // Volver al ámbito anterior
+        currentScope = previousScope;
+        tablaSimbolos.exitScope();
         return null;
     }
 
@@ -239,8 +333,14 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
     }
     @Override
     public Void visitAssignmentStatement(MiniPascalParser.AssignmentStatementContext ctx) {
-        System.out.println("    Assignment Statement:");
-        System.out.println("        Se asigna el valor de " + ctx.expression().getText() + " a la variable " + ctx.variable().getText());
+        String variable = ctx.variable().getText();
+        String expression = ctx.expression().getText();
+
+        if (!tablaSimbolos.findSimbolo(variable)) {
+            System.out.println("Error: La variable '" + variable + "' no está declarada en el ámbito '" + currentScope + "'.");
+        } else {
+            System.out.println("Asignación: '" + variable + "' = " + expression);
+        }
         return null;
     }
 
