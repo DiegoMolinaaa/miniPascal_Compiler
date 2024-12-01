@@ -74,9 +74,20 @@ public class Main {
 
                 // Imprimir resultado de la compilacion
                 if (erroresEncontrados.isEmpty()) {
-                    MiniPascalASTVisitorPersonal visitor = new MiniPascalASTVisitorPersonal(tablaSimbolos);
-                    visitor.visit(tree);
+                    //Analisis Lexico y Sintactico
+                    MiniPascalASTVisitorPersonal visitor1 = new MiniPascalASTVisitorPersonal();
+                    visitor1.visit(tree);
+
+
+                    //Tabla de Simbolos
+                    MiniPascalASTVisitorTablaSimbolos visitorTablaSimbolos = new MiniPascalASTVisitorTablaSimbolos(tablaSimbolos);
+                    visitorTablaSimbolos.visit(tree);
                     tablaSimbolos.printTablaSimbolos();
+
+                    //Analisis Semantico -- Pamela
+
+
+                    //Generacion de Codigo Intermedio (3 Direcciones)
                     System.out.println("\nCompilación exitosa!");
                 }
                 else {
