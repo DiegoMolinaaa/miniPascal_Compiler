@@ -353,9 +353,9 @@ public class Frame extends javax.swing.JFrame {
 
                 // Imprimir resultado de la compilacion
                 if (erroresEncontrados.isEmpty()) {
-                    MiniPascalASTVisitorPersonal visitor = new MiniPascalASTVisitorPersonal(tree, salida);
+                    MiniPascalASTVisitorPersonal visitor = new MiniPascalASTVisitorPersonal();
+                    salida = visitor.generarSalida(tree);
 //                    visitor.visit(tree);
-//                    System.out.println("\nCompilación exitosa!");
                     salida += "\nCompilación exitosa!";
                 }
                 else {
