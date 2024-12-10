@@ -36,7 +36,7 @@ public class Frame extends javax.swing.JFrame {
 
     public Frame() {
         initComponents();
-        addKeywordHighlighting(new String[]{"public", "class", "void", "static", "main"}, new Color(102,102,255));
+        addKeywordHighlighting(new String[]{"program", "begin", "end", "var"}, new Color(102,102,255));
         synchronizeScrollBars(jScrollPane1, jScrollPane2);
     }
 
@@ -62,7 +62,7 @@ public class Frame extends javax.swing.JFrame {
         menuArchivo = new javax.swing.JMenu();
         menuAbrirTxt = new javax.swing.JMenuItem();
         menuGuardarTxt = new javax.swing.JMenuItem();
-        jMenu1 = new javax.swing.JMenu();
+        menuLimpiar = new javax.swing.JMenu();
         menuCompilar = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -156,19 +156,19 @@ public class Frame extends javax.swing.JFrame {
 
         jMenuBar1.add(menuArchivo);
 
-        jMenu1.setIcon(new javax.swing.ImageIcon(getClass().getResource("../assets/clean.png"))); // NOI18N
-        jMenu1.setText("Limpiar");
-        jMenu1.addMouseListener(new java.awt.event.MouseAdapter() {
+        menuLimpiar.setIcon(new javax.swing.ImageIcon(getClass().getResource("../assets/clean.png"))); // NOI18N
+        menuLimpiar.setText("Limpiar");
+        menuLimpiar.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
-                jMenu1MousePressed(evt);
+                menuLimpiarMousePressed(evt);
             }
         });
-        jMenu1.addActionListener(new java.awt.event.ActionListener() {
+        menuLimpiar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenu1ActionPerformed(evt);
             }
         });
-        jMenuBar1.add(jMenu1);
+        jMenuBar1.add(menuLimpiar);
 
         menuCompilar.setIcon(new javax.swing.ImageIcon(getClass().getResource("../assets/play-button-arrowhead.png"))); // NOI18N
         menuCompilar.setText("Compilar código");
@@ -243,6 +243,7 @@ public class Frame extends javax.swing.JFrame {
 
     private void menuAbrirTxtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuAbrirTxtActionPerformed
         JFileChooser fc = new JFileChooser();
+        fc.setCurrentDirectory(new File("./ejemplos/"));
         fc.setFileFilter(new FileNameExtensionFilter("Archivo de texto", "txt"));
         int seleccion = fc.showOpenDialog(null);
         archivo = fc.getSelectedFile();
@@ -296,7 +297,7 @@ public class Frame extends javax.swing.JFrame {
         
     }//GEN-LAST:event_jMenu1ActionPerformed
 
-    private void jMenu1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMenu1MousePressed
+    private void menuLimpiarMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMenu1MousePressed
         int option = JOptionPane.showConfirmDialog(
                 null,
                 "¿Está seguro? Esta acción borrará el código y se perderán los cambios.",
@@ -308,6 +309,7 @@ public class Frame extends javax.swing.JFrame {
         if (option == JOptionPane.OK_OPTION) {
             txtCodigo.setText("");
             txtNumLinea.setText("1");
+            txtSalida.setText("");
         }
     }//GEN-LAST:event_jMenu1MousePressed
 
@@ -322,7 +324,6 @@ public class Frame extends javax.swing.JFrame {
                 CommonTokenStream tokens = new CommonTokenStream(lexer);
                 MiniPascalParser parser = new MiniPascalParser(tokens);
                 ArrayList<ErrorCompilacion> erroresEncontrados = new ArrayList<>();
-
 
                 // Personalizar listener de errores Lexicos
                 lexer.removeErrorListeners();
@@ -501,7 +502,7 @@ public class Frame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu menuLimpiar;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
