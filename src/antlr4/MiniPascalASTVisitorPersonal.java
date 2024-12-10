@@ -10,6 +10,7 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
         return salida;
     }
 
+
     @Override
     public Void visitProgram(MiniPascalParser.ProgramContext ctx) {
         salida += "Program:\n  Encabezado Programa:";

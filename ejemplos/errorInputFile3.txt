@@ -1,6 +1,7 @@
 program SintaxisIncorrecta;
 var
   x: integer;
+  x: char;      { Error: variable 'x' ya declarada }
 
 begin
   x := 10;
