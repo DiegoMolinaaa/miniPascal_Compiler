@@ -4,15 +4,23 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> {
+    String salida = "";
+    public MiniPascalASTVisitorPersonal(ParseTree tree, String salida) {
+        visit(tree);
+        this.salida = salida;
+    }
 
     @Override
     public Void visitProgram(MiniPascalParser.ProgramContext ctx) {
-        System.out.println("Program:");
-        System.out.println("  Encabezado Programa:");
+//        System.out.println("Program:");
+//        System.out.println("  Encabezado Programa:");
+        salida.concat("Program:\n  Encabezado Programa:");
         visit(ctx.programHeading());
-        System.out.println("  Block:");
+//        System.out.println("  Block:");
+        salida.concat("\n  Block:");
         visit(ctx.block());
-        System.out.println("\nFin de Programa");
+//        System.out.println("\nFin de Programa");
+        salida.concat("\nFin de Programa");
         return null;
     }
 
