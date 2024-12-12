@@ -127,7 +127,12 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
 //                }
 //                else
                     if (!sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
-                    salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nLado derecho: " + sim.getType();
+                    if (simboloIzquierdo instanceof SimboloFuncion){
+                        salida += "\nError: En una función, se debe retornar un valor del tipo correcto.\nTipo a retornar: "+simboloIzquierdo.getType() + "\nTipo retornado: " + sim.getType();
+                    }
+                    else {
+                        salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nLado derecho: " + sim.getType();
+                    }
                 }
 
             }
