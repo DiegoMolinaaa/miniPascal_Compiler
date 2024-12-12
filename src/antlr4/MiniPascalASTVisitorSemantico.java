@@ -125,31 +125,22 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                 if (sim != null) {
                     if (!(simboloIzquierdo instanceof SimboloArreglo)) {
                         if (sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
+                            // Realizar la suma/resta de los valores
                             if (opAritmetica) {
-//                            if (simboloIzquierdo.getValue() instanceof Integer) {
-//                                System.out.println("SIMBOLO IZ ES INT " + simboloIzquierdo.getName());
-//                            }
-//                            if (sim.getValue() instanceof Integer) {
-//                                System.out.println("SIMBOLO ES INT");
-//                            }
-//                            if (simboloIzquierdo.getValue() instanceof String) {
-//                                System.out.println("SIMBOLO IZ ES STRIN " + simboloIzquierdo.getName());
-//                            }
-//                            if (sim.getValue() instanceof String) {
-//                                System.out.println("SIMBOLO ES STRING " + sim.getName());
-//                            }
-
+                                int valorActual = 0, valorVariable = 0;
                                 if (simboloIzquierdo.getValue() instanceof Integer && sim.getValue() instanceof Integer) {
-                                    simboloIzquierdo.setValue((Integer)simboloIzquierdo.getValue() + (Integer)sim.getValue());
+                                    valorActual = (Integer)simboloIzquierdo.getValue();
+                                    valorVariable = (Integer)sim.getValue();
                                 }
                                 else if (simboloIzquierdo.getValue() instanceof String && sim.getValue() instanceof String) {
-                                    int simIzValue = Integer.parseInt((String) simboloIzquierdo.getValue());
-                                    int simValue = Integer.parseInt((String) sim.getValue());
-                                    simboloIzquierdo.setValue(simIzValue+simValue);
+                                    valorActual = Integer.parseInt((String)simboloIzquierdo.getValue());
+                                    valorVariable = Integer.parseInt((String)sim.getValue());
                                 }
+                                simboloIzquierdo.setValue(valorActual + (opAditivo.equals("+") ? +valorVariable : -valorVariable));
                             }
+//                            else if (o)
+                            // Realizar la asignacion del valor solito ej. x = y
                             else {
-                                System.out.println("SIMBOLO IZ ES " + simboloIzquierdo.getName() + " = " + simboloIzquierdo.getValue());
                                 simboloIzquierdo.setValue(sim.getValue());
                             }
                         }
