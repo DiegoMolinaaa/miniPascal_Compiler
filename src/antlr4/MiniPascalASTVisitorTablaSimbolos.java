@@ -145,8 +145,9 @@ public class MiniPascalASTVisitorTablaSimbolos extends MiniPascalBaseVisitor<Obj
     public Void visitConstantDefinition(MiniPascalParser.ConstantDefinitionContext ctx) {
         String name = ctx.identifier().getText();
         String value = ctx.constant().getText();
+        System.out.println("value " + value);
 
-        if (!tablaSimbolos.addSimbolo(new Simbolo(name, "const", currentScope, null, "constant"))) {
+        if (!tablaSimbolos.addSimbolo(new Simbolo(name, "const", currentScope, value, "constant"))) {
             salida += '\n' +("Error: Constante '" + name + "' ya declarada.");
         } else {
             System.out.println("Constante '" + name + "' con valor '" + value + "' añadida.");
@@ -415,7 +416,7 @@ public class MiniPascalASTVisitorTablaSimbolos extends MiniPascalBaseVisitor<Obj
         System.out.println("      Do:");
         visit(ctx.statement());
 
-        // Validar que la variable exista
+        // Sem: Validar que la variable exista
         if (!tablaSimbolos.findSimbolo(ctx.identifier().getText())) {
             salida += '\n' +("Error: La variable '" + ctx.identifier().getText() + "' no está declarada en el ámbito '" + currentScope + "'.");
         }
