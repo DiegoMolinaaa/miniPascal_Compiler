@@ -176,6 +176,9 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                         simboloIzquierdo.setValue(numero);
                     }
                 }
+                else {
+                    simboloIzquierdo.setValue(constante);
+                }
             }
             else {
                 validacionTipos(tipoConst);
