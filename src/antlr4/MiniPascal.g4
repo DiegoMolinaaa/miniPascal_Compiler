@@ -92,7 +92,7 @@ char
    ;
 
 boolean
-    : BOOLEAN
+    : bool_
     ;
 integer
    : INTEGER
@@ -266,7 +266,6 @@ factor
    | functionDesignator
    | unsignedConstant
    | NOT factor
-   | bool_
    ;
 
 unsignedConstant
@@ -274,6 +273,7 @@ unsignedConstant
    | constantChr
    | string
    | NIL
+   | bool_
    ;
 
 functionDesignator
@@ -353,7 +353,6 @@ WS: [ \t\n\r] -> skip;
 COMMENT: '{' .*? '}' -> skip;
 
 INTEGER: [0-9]+;
-BOOLEAN: 'true' | 'false';
 CHAR: '\'' ('\'\'' | ~('\''))? '\'';
 STRING: '\'' ('\'\'' | ~('\''))* '\'';
 
@@ -399,6 +398,8 @@ TO: 'to';
 DO: 'do';
 DOWNTO: 'downto';
 VAR: 'var';
+TRUE: 'true';
+FALSE: 'false';
 
 ARRAY: 'Array';
 OF: 'of';

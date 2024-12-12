@@ -601,8 +601,8 @@ public class MiniPascalASTVisitorTablaSimbolos extends MiniPascalBaseVisitor<Obj
         }else if (ctx.NOT() != null) {
             System.out.println("NOT");
             visit(ctx.factor()); // Visitar el nodo del factor
-        } else if (ctx.bool_() != null) {
-            System.out.println("Valor booleano: " + ctx.bool_().getText());
+        } else if (ctx.unsignedConstant().bool_() != null) {
+            System.out.println("Valor booleano: " + ctx.unsignedConstant().bool_().getText());
         }
         return null;
     }

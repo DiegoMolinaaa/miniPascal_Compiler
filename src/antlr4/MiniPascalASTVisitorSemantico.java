@@ -72,7 +72,6 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
             opAditivo = ctx.additiveoperator().getText();
             visit(ctx.simpleExpression());
         }
-
         return null;
     }
 
@@ -141,13 +140,24 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
             // CASO EN QUE UN TERMINO ES OTRA EXPRESION -> (a + b)
             visit(ctx.expression());
         } else if (ctx.functionDesignator() != null) {
-            // CASO NO SE QUE ES ESTE
-//            if (!simboloIzquierdo.getType().equalsIgnoreCase("Integer")) {
-//                salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nLado derecho: Integer";
+            // CASO DE LLAMADO A FUNCIONES
+//            String nomFuncion = ctx.functionDesignator().identifier().getText();
+//            if (tablaSimbolos.findSimbolo(nomFuncion)) {
+//                Simbolo sim = tablaSimbolos.getSimbolo(nomFuncion, currentScope);
+//                if (sim != null) {
+//                    if (!(simboloIzquierdo instanceof SimboloFuncion)) {
+//                        SimboloFuncion funcion = (SimboloFuncion)sim;
+//                        if(!simboloIzquierdo.getType().equalsIgnoreCase(funcion.getType())) {
+//                            salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nValor retornado en el llamado: Integer";
+//                        }
+//                        else {
+//                            visit(ctx.functionDesignator());
+//                            simboloIzquierdo.setValue(funcion.getValue());
+//                        }
+//                    }
+//                }
 //            }
-//            else {
-//            }
-                simboloIzquierdo.setValue(ctx.functionDesignator().getText() + " funcDesig");
+
             visit(ctx.functionDesignator());
         } else if (ctx.unsignedConstant() != null) {
             // CASO DE VALOR CONSTANTE (ej. 10, 'Hola'...)
@@ -155,17 +165,16 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                 constante = ctx.unsignedConstant().getText();
             if (constante.contains("'") && constante.length() >= 3) {
                 constante = constante.substring(1, constante.indexOf("'", 1));
-                if (constante.length() == 1) {
-                    tipoConst = "Character";
-                }
-                else {
-                    tipoConst = "String";
-                }
+                tipoConst = constante.length() == 1 ? "Character" : "String";
+            }
+            else if (constante.equalsIgnoreCase("true") || constante.equalsIgnoreCase("false")) {
+                tipoConst = "Boolean";
             }
             // Validar el tipo de la constante con el tipo a asignar
             if (simboloIzquierdo.getType().equalsIgnoreCase(tipoConst)
                     && !(simboloIzquierdo instanceof SimboloArreglo)) {
                 if (simboloIzquierdo.getType().equalsIgnoreCase("Integer")) {
+                    // Caso en que sea un Integer
                     int numero = Integer.parseInt(constante);
                     if (opAritmetica) {
                         int valorActual = simboloIzquierdo.getValue() == null ? 0 : (Integer)simboloIzquierdo.getValue();
@@ -173,10 +182,12 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                         simboloIzquierdo.setValue(valorActual + (opAditivo.equals("+") ? + numero : - numero));
                     }
                     else {
+                        // Cuando no es operacion aritmetica, solo se asigna el valor
                         simboloIzquierdo.setValue(numero);
                     }
                 }
                 else {
+                    // Casos en que es un String, Char o Boolean
                     simboloIzquierdo.setValue(constante);
                 }
             }
@@ -192,75 +203,100 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                 simboloIzquierdo.setValue(ctx.NOT().getText() + " NOT");
             }
             visit(ctx.factor());
-        } else if (ctx.bool_() != null) {
+        }
+        else if (ctx.unsignedConstant().bool_() != null) {
             if (opAritmetica) {
                 salida += "\nLos operandos de expresiones aritméticas deben ser de tipo Integer";
             }
             else {
-                simboloIzquierdo.setValue(ctx.bool_().getText() + " bool");
+                simboloIzquierdo.setValue(ctx.unsignedConstant().bool_().getText() + " bool");
             }
         }
         return null;
     }
 
+    @Override
+    public Void visitFunctionDesignator(MiniPascalParser.FunctionDesignatorContext ctx) {
+        String nombreFuncion = ctx.identifier().getText();
+        salida += "\n\nLlamado a la función " + nombreFuncion;
+        if (tablaSimbolos.findSimbolo(nombreFuncion)) {
+            Simbolo simbolo = tablaSimbolos.getSimbolo(nombreFuncion, nombreFuncion);
+            System.out.println("existo " + simbolo.getScope());
+            if (simbolo != null) {
+                if (simbolo instanceof SimboloFuncion) {
+                    SimboloFuncion funcion = (SimboloFuncion)simbolo;
+                    if (ctx.parameterList() != null) {
+                        for (int i = 0; i < ctx.parameterList().actualParameter().size(); i++) {
+                            String parametro = ctx.parameterList().actualParameter(i).getText();
+                            if (tablaSimbolos.findSimbolo(parametro)) {
+                                // Es una variable
+                                System.out.println("param " + parametro);
+                                Simbolo param = tablaSimbolos.getSimbolo(parametro, nombreFuncion);
+                                String tipoRequerido = funcion.parameters.get(i).getType(),
+                                    tipoRecibido = param.getType();
+                                if (!tipoRequerido.equalsIgnoreCase(tipoRecibido)) {
+                                    salida += "\nError: Tipo de parámetro incompatible.\nTipo esperado: " + tipoRequerido + "\nTipo recibido: " + tipoRecibido + "\n";
+                                    return null;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+                        visit(ctx.parameterList());
+        return null;
+    }
+
+    @Override
+    public Void visitParameterList(MiniPascalParser.ParameterListContext ctx) {
+        if(ctx == null){
+            // No hay parametros
+            return null;
+        }
+        // Si hay parametros
+        for (MiniPascalParser.ActualParameterContext actualParameterContext : ctx.actualParameter()) {
+            visit(actualParameterContext);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitActualParameter(MiniPascalParser.ActualParameterContext ctx) {
+        visit(ctx.expression());
+        return null;
+    }
+
+    @Override
+    public Void visitForStatement(MiniPascalParser.ForStatementContext ctx) {
+        String nomVar = ctx.identifier().getText();
+        if (tablaSimbolos.findSimbolo(nomVar)) {
+            Simbolo variable = tablaSimbolos.getSimbolo(nomVar, currentScope);
+            // Validar que la variable sea tipo int para asignarle el valor inicial
+            if (variable.getType().equalsIgnoreCase("Integer")) {
+                // Validar que sea un numero
+                String valor = ctx.forList().initialValue().getText();
+                if (valor.matches("\\d+")) {
+                    // Asignar valor inicial a la variable
+                    variable.setValue(ctx.forList().initialValue().getText());
+                    visit(ctx.forList().initialValue());
+                    visit(ctx.forList().finalValue());
+                    visit(ctx.statement());
+                }
+                else if (tablaSimbolos.findSimbolo(valor)) {
+                    Simbolo varAsignar = tablaSimbolos.getSimbolo(valor, currentScope);
+                    if (varAsignar.getType().equalsIgnoreCase("Integer")) {
+                        variable.setValue(varAsignar.getValue());
+                    }
+                }
+                else {
+                    salida += "\nError: El iterador en un ciclo for debe iniciar en un número entero.";
+                }
+            }
+            else {
+                salida += "\nError: En una asignación ambos lados deben tener el mismo tipo.\nLado izquierdo: "+ variable.getType() + "\nLado derecho: Integer";
+            }
+        }
+        return null;
+    }
 }
-
-//
-//            if (sim.getCategory().equalsIgnoreCase("array")) {
-////                    El índice de una expresión de array debe ser mayor a cero
-//                String indice = ctx.variable().getText();
-//                indice = indice.substring(indice.indexOf('[')+1, indice.indexOf(']'));
-//
-//                // Arreglo de dos dimensiones
-//                if (indice.contains(",")) {
-//                    String[] parts = indice.split(",");
-//                    String indice1 = parts[0], indice2 = parts[1];
-//                    if (Integer.parseInt(indice1) == 0 || Integer.parseInt(indice2) == 0) {
-//                        salida += "\nError: El índice de una expresión de array debe ser mayor a cero.";
-//                    }
-//                }
-//                // Arreglo de una dimensión
-//                else {
-//                    if (Integer.parseInt(indice) == 0) {
-//                        salida += "\nError: El índice de una expresión de array debe ser mayor a cero.";
-//                    }
-//                }
-//            }
-
-
-//simboloIzquierdo.setValue(ctx.variable().getText());
-// CASO EN QUE UN TERMINO ES VARIABLE
-//            salida += "\n" + variable + " a";
-//String variable = ctx.variable().getText();
-//            if (variable.contains("[")) {
-////                    El índice de una expresión de array debe ser mayor a cero
-//                String indice = ctx.variable().getText();
-//                indice = indice.substring(indice.indexOf('[')+1, indice.indexOf(']'));
-//
-//                // Arreglo de dos dimensiones
-//                if (indice.contains(",")) {
-//                    String[] parts = indice.split(",");
-//                    String indice1 = parts[0], indice2 = parts[1];
-//                    if (!tablaSimbolos.findSimbolo(indice1)) {
-//                        if (Integer.parseInt(indice1) == 0 || Integer.parseInt(indice2) == 0) {
-//                            salida += "\nError: El índice de una expresión de array debe ser mayor a cero.";
-//                        }
-//                    }
-//                    else {
-//                        if (tablaSimbolos.getSimbolo(indice1, currentScope).getType() == "Integer"
-//                                && tablaSimbolos.getSimbolo(indice2, currentScope).getType() == "Integer") {
-//                            if ((Integer) tablaSimbolos.getSimbolo(indice1, currentScope).getValue() > 0) {
-//
-//                            }
-//                        }
-//                    }
-//                }
-//                // Arreglo de una dimensión
-//                else {
-//                    if (!tablaSimbolos.findSimbolo(indice)) {
-//                        if (Integer.parseInt(indice) == 0) {
-//                            salida += "\nError: El índice de una expresión de array debe ser mayor a cero.";
-//                        }
-//                    }
-//                }
-//            }

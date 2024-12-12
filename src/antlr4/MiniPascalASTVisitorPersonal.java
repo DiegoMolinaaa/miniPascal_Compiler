@@ -397,7 +397,7 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
     @Override
     public Void visitParameterList(MiniPascalParser.ParameterListContext ctx) {
         if(ctx == null){
-            //salida += "\n" + ("        Sin Parametros");
+            salida += "\n" + ("        Sin Parametros");
             return null;
         }
         for (MiniPascalParser.ActualParameterContext actualParameterContext : ctx.actualParameter()) {
@@ -456,8 +456,8 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
         }else if (ctx.NOT() != null) {
             salida += "\n" + ("NOT");
             visit(ctx.factor()); // Visitar el nodo del factor
-        } else if (ctx.bool_() != null) {
-            salida += "\n" + ("Valor booleano: " + ctx.bool_().getText());
+        } else if (ctx.unsignedConstant().bool_() != null) {
+            salida += "\n" + ("Valor booleano: " + ctx.unsignedConstant().bool_().getText());
         }
         return null;
     }
