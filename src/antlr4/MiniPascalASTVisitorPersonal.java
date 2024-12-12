@@ -52,7 +52,8 @@ public class MiniPascalASTVisitorPersonal extends MiniPascalBaseVisitor<Object> 
             for (MiniPascalParser.IdentifierContext identifier : ctx.identifierList().identifier()) {
                 if(identifier == ctx.identifierList().identifier().get(ctx.identifierList().identifier().size()-1)){
                     salida += (identifier.getText());
-                }else {
+                }
+                else {
                     salida += (identifier.getText() + ", ");
                 }
             }

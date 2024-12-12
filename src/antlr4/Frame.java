@@ -3,22 +3,17 @@ package antlr4;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import org.antlr.v4.runtime.BaseErrorListener;
 
 import java.awt.Color;
-import javax.swing.JOptionPane;
+import javax.swing.*;
 import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JFileChooser;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -36,7 +31,7 @@ public class Frame extends javax.swing.JFrame {
 
     public Frame() {
         initComponents();
-        addKeywordHighlighting(new String[]{"program", "begin", "end", "var"}, new Color(102,102,255));
+        addKeywordHighlighting(new String[]{"program", "begin", "Begin", "end", "End", "var"}, new Color(102,102,255));
         synchronizeScrollBars(jScrollPane1, jScrollPane2);
     }
 
@@ -58,6 +53,8 @@ public class Frame extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
         txtSalida = new javax.swing.JTextArea();
+        txtSalidaSem = new javax.swing.JTextArea();
+        jSplitPane1 = new javax.swing.JSplitPane();
         jMenuBar1 = new javax.swing.JMenuBar();
         menuArchivo = new javax.swing.JMenu();
         menuAbrirTxt = new javax.swing.JMenuItem();
@@ -86,6 +83,21 @@ public class Frame extends javax.swing.JFrame {
                 txtCodigoKeyReleased(evt);
             }
         });
+        txtCodigo.setEditable(true);
+        InputMap im = txtCodigo.getInputMap();
+        ActionMap am = txtCodigo.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK), "copy");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_DOWN_MASK), "paste");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_DOWN_MASK), "cut");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.META_DOWN_MASK), "copy");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.META_DOWN_MASK), "paste");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.META_DOWN_MASK), "cut");
+
+        am.put("copy", TransferHandler.getCopyAction());
+        am.put("paste", TransferHandler.getPasteAction());
+        am.put("cut", TransferHandler.getCutAction());
+
         jScrollPane1.setViewportView(txtCodigo);
 
         jPanel2.add(jScrollPane1);
@@ -106,7 +118,7 @@ public class Frame extends javax.swing.JFrame {
         jScrollPane2.setBounds(40, 20, 50, 380);
 
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel1.setText("Salida generada");
+        jLabel1.setText("Output");
         jPanel2.add(jLabel1);
         jLabel1.setBounds(40, 440, 110, 17);
 
@@ -115,10 +127,23 @@ public class Frame extends javax.swing.JFrame {
         txtSalida.setColumns(20);
         txtSalida.setForeground(new java.awt.Color(204, 204, 204));
         txtSalida.setRows(5);
-        jScrollPane4.setViewportView(txtSalida);
 
-        jPanel2.add(jScrollPane4);
-        jScrollPane4.setBounds(40, 470, 720, 200);
+        txtSalidaSem.setEditable(false);
+        txtSalidaSem.setBackground(new java.awt.Color(51, 51, 51));
+        txtSalidaSem.setColumns(20);
+        txtSalidaSem.setForeground(new java.awt.Color(204, 204, 204));
+        txtSalidaSem.setRows(5);
+
+        jSplitPane1 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                new JScrollPane(txtSalida),
+                new JScrollPane(txtSalidaSem));
+
+        jPanel2.add(jSplitPane1);
+        jSplitPane1.setBounds(40, 470, 720, 200);
+
+//        jScrollPane4.setViewportView(txtSalida);
+//        jPanel2.add(jScrollPane4);
+//        jScrollPane4.setBounds(40, 470, 720, 200);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -249,12 +274,14 @@ public class Frame extends javax.swing.JFrame {
         archivo = fc.getSelectedFile();
         if (seleccion == JFileChooser.APPROVE_OPTION) {
             txtSalida.setText("");
+            txtSalidaSem.setText("");
             BufferedReader br = null;
             try {
                 br = new BufferedReader(new FileReader(archivo.getPath()));
                 String st;
                 int linea = 1;
                 txtNumLinea.setText("1");
+                txtCodigo.setText("");
                 while ((st = br.readLine()) != null) {
                     txtNumLinea.append('\n' + Integer.toString(++linea));
                     txtCodigo.append(st + '\n');
@@ -310,14 +337,47 @@ public class Frame extends javax.swing.JFrame {
             txtCodigo.setText("");
             txtNumLinea.setText("1");
             txtSalida.setText("");
+            txtSalidaSem.setText("");
         }
     }//GEN-LAST:event_jMenu1MousePressed
 
     private void menuCompilarMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_menuCompilarMousePressed
         // Proceso de compilacion
+        if (txtCodigo.getText().isEmpty()) {
+            archivo = new File("./ejemplos/inputFileBueno1.txt");
+            txtSalida.setText("");
+            txtSalidaSem.setText("");
+            BufferedReader br = null;
+            try {
+                br = new BufferedReader(new FileReader(archivo.getPath()));
+                String st;
+                int linea = 1;
+                txtNumLinea.setText("1");
+                txtCodigo.setText("");
+                while ((st = br.readLine()) != null) {
+                    txtNumLinea.append('\n' + Integer.toString(++linea));
+                    txtCodigo.append(st + '\n');
+                }
+
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(Frame.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(Frame.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                try {
+                    br.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(Frame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+
+
+        TablaSimbolos tablaSimbolos = new TablaSimbolos();
         txtSalida.setText("");
+        txtSalidaSem.setText("");
         if (txtCodigo.getText().length() > 0 && !txtCodigo.getText().isBlank() && !txtCodigo.getText().isEmpty()) {
-            String salida = "";
+            String salida = "", salidaTablaSim = "", salidaSem = "";
             try {
                 CharStream input = CharStreams.fromString(txtCodigo.getText());
                 MiniPascalLexer lexer = new MiniPascalLexer(input);
@@ -354,16 +414,30 @@ public class Frame extends javax.swing.JFrame {
 
                 // Imprimir resultado de la compilacion
                 if (erroresEncontrados.isEmpty()) {
-                    MiniPascalASTVisitorPersonal visitor = new MiniPascalASTVisitorPersonal();
-                    salida = visitor.generarSalida(tree);
-//                    visitor.visit(tree);
-                    salida += "\nCompilación exitosa!";
+                    //Analisis Lexico y Sintactico
+                    MiniPascalASTVisitorPersonal visitorPersonal = new MiniPascalASTVisitorPersonal();
+                    salida = visitorPersonal.generarSalida(tree);
+                    visitorPersonal.visit(tree);
+//                    salida += "\nCompilación exitosa!";
+
+                    //Tabla de Simbolos
+                    MiniPascalASTVisitorTablaSimbolos visitorTablaSimbolos = new MiniPascalASTVisitorTablaSimbolos(tablaSimbolos);
+//                    salidaSem +=
+                            visitorTablaSimbolos.generarSalida(tree);
+                    tablaSimbolos.printTablaSimbolos();
+                    System.out.println("\nCompilación exitosa!");
+
+                    //Analisis Semantico -- Pamela
+                    MiniPascalASTVisitorSemantico visitorSemantico = new MiniPascalASTVisitorSemantico(tablaSimbolos, erroresEncontrados);
+                    salidaSem += visitorSemantico.generarSalida(tree);
+//                    salidaSem += "\nCompilación exitosa!";
+
+                    //Generacion de Codigo Intermedio (3 Direcciones)
+
                 }
                 else {
-//                    System.out.println();
                     salida += "\nErrores encontrados (" + erroresEncontrados.size() + "):\n";
                     for (ErrorCompilacion error : erroresEncontrados) {
-//                        System.err.println(error);
                         salida += error.toString();
                     }
                 }
@@ -371,90 +445,91 @@ public class Frame extends javax.swing.JFrame {
                 e.printStackTrace();
             }
             finally {
+                txtSalidaSem.setText(salidaSem);
                 txtSalida.setText(salida);
             }
         }
 
-        // String nombreArchivo = "";
-        // File archivo = null;
-        // TablaSimbolos tablaSimbolos = new TablaSimbolos();
-        // // Seleccionar el programa cno filechooser
-        // try {
-        //     JFileChooser fileChooser = new JFileChooser("./src/");
-        //     FileNameExtensionFilter filtro = new FileNameExtensionFilter("Archivo de Texto", "txt");
-        //     fileChooser.setFileFilter(filtro);
-        //     int seleccion = fileChooser.showOpenDialog(null);
-        //     if (seleccion == JFileChooser.APPROVE_OPTION) {
-        //         archivo = fileChooser.getSelectedFile();
-        //         nombreArchivo = archivo.getAbsolutePath();
-        //     }
-
-        //     // Proceso de compilacion
-        //     try {
-        //         CharStream input = CharStreams.fromPath(Paths.get(nombreArchivo));
-        //         MiniPascalLexer lexer = new MiniPascalLexer(input);
-        //         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        //         MiniPascalParser parser = new MiniPascalParser(tokens);
-        //         ArrayList<ErrorCompilacion> erroresEncontrados = new ArrayList<>();
-
-        //         // Personalizar listener de errores Lexicos
-        //         lexer.removeErrorListeners();
-        //         lexer.addErrorListener(new BaseErrorListener()
-        //            {
-        //                @Override
-        //                public void syntaxError(Recognizer<?, ?> recognizer, Object simboloIncorrecto, int linea, int posicionEnLinea, String msg, RecognitionException e)
-        //                {
-        //                    erroresEncontrados.add(new ErrorCompilacion(linea, posicionEnLinea, traducirMensaje(msg), ErrorCompilacion.ErrorTipo.Léxico));
-        //                }
-        //            }
-        //         );
-
-        //         // Personalizar listener de errores Sintacticos
-        //         parser.removeErrorListeners();
-        //         parser.addErrorListener(new BaseErrorListener()
-        //             {
-        //                 @Override
-        //                 public void syntaxError(Recognizer<?, ?> recognizer, Object simboloIncorrecto, int linea, int posicionEnLinea, String msg, RecognitionException e)
-        //                 {
-        //                     erroresEncontrados.add(new ErrorCompilacion(linea, posicionEnLinea, traducirMensaje(msg), ErrorCompilacion.ErrorTipo.Sintáctico));
-        //                 }
-        //             }
-        //         );
-
-        //         // Arbolito
-        //         ParseTree tree = parser.program();
-
-        //         // Imprimir resultado de la compilacion
-        //         if (erroresEncontrados.isEmpty()) {
-        //             //Analisis Lexico y Sintactico
-        //             MiniPascalASTVisitorPersonal visitor1 = new MiniPascalASTVisitorPersonal();
-        //             visitor1.visit(tree);
-
-
-        //             //Tabla de Simbolos
-        //             MiniPascalASTVisitorTablaSimbolos visitorTablaSimbolos = new MiniPascalASTVisitorTablaSimbolos(tablaSimbolos);
-        //             visitorTablaSimbolos.visit(tree);
-        //             tablaSimbolos.printTablaSimbolos();
-
-        //             //Analisis Semantico -- Pamela
-
-
-        //             //Generacion de Codigo Intermedio (3 Direcciones)
-        //             System.out.println("\nCompilación exitosa!");
-        //         }
-        //         else {
-        //             System.out.println("\nErrores encontrados (" + erroresEncontrados.size() + "):\n");
-        //             for (ErrorCompilacion error : erroresEncontrados) {
-        //                 System.err.println(error);
-        //             }
-        //         }
-
-        //     } catch (Exception e) {
-        //         e.printStackTrace();
-        //     }
-        // } catch (Exception e) {
-        //     e.printStackTrace();
-        // }
+//         String nombreArchivo = "";
+//         File archivo = null;
+//         TablaSimbolos tablaSimbolos = new TablaSimbolos();
+//         // Seleccionar el programa cno filechooser
+//         try {
+//             JFileChooser fileChooser = new JFileChooser("./src/");
+//             FileNameExtensionFilter filtro = new FileNameExtensionFilter("Archivo de Texto", "txt");
+//             fileChooser.setFileFilter(filtro);
+//             int seleccion = fileChooser.showOpenDialog(null);
+//             if (seleccion == JFileChooser.APPROVE_OPTION) {
+//                 archivo = fileChooser.getSelectedFile();
+//                 nombreArchivo = archivo.getAbsolutePath();
+//             }
+//
+//             // Proceso de compilacion
+//             try {
+//                 CharStream input = CharStreams.fromPath(Paths.get(nombreArchivo));
+//                 MiniPascalLexer lexer = new MiniPascalLexer(input);
+//                 CommonTokenStream tokens = new CommonTokenStream(lexer);
+//                 MiniPascalParser parser = new MiniPascalParser(tokens);
+//                 ArrayList<ErrorCompilacion> erroresEncontrados = new ArrayList<>();
+//
+//                 // Personalizar listener de errores Lexicos
+//                 lexer.removeErrorListeners();
+//                 lexer.addErrorListener(new BaseErrorListener()
+//                    {
+//                        @Override
+//                        public void syntaxError(Recognizer<?, ?> recognizer, Object simboloIncorrecto, int linea, int posicionEnLinea, String msg, RecognitionException e)
+//                        {
+//                            erroresEncontrados.add(new ErrorCompilacion(linea, posicionEnLinea, traducirMensaje(msg), ErrorCompilacion.ErrorTipo.Léxico));
+//                        }
+//                    }
+//                 );
+//
+//                 // Personalizar listener de errores Sintacticos
+//                 parser.removeErrorListeners();
+//                 parser.addErrorListener(new BaseErrorListener()
+//                     {
+//                         @Override
+//                         public void syntaxError(Recognizer<?, ?> recognizer, Object simboloIncorrecto, int linea, int posicionEnLinea, String msg, RecognitionException e)
+//                         {
+//                             erroresEncontrados.add(new ErrorCompilacion(linea, posicionEnLinea, traducirMensaje(msg), ErrorCompilacion.ErrorTipo.Sintáctico));
+//                         }
+//                     }
+//                 );
+//
+//                 // Arbolito
+//                 ParseTree tree = parser.program();
+//
+//                 // Imprimir resultado de la compilacion
+//                 if (erroresEncontrados.isEmpty()) {
+//                     //Analisis Lexico y Sintactico
+//                     MiniPascalASTVisitorPersonal visitor1 = new MiniPascalASTVisitorPersonal();
+//                     visitor1.visit(tree);
+//
+//
+//                     //Tabla de Simbolos
+//                     MiniPascalASTVisitorTablaSimbolos visitorTablaSimbolos = new MiniPascalASTVisitorTablaSimbolos(tablaSimbolos);
+//                     visitorTablaSimbolos.visit(tree);
+//                     tablaSimbolos.printTablaSimbolos();
+//
+//                     //Analisis Semantico -- Pamela
+//
+//
+//                     //Generacion de Codigo Intermedio (3 Direcciones)
+//                     System.out.println("\nCompilación exitosa!");
+//                 }
+//                 else {
+//                     System.out.println("\nErrores encontrados (" + erroresEncontrados.size() + "):\n");
+//                     for (ErrorCompilacion error : erroresEncontrados) {
+//                         System.err.println(error);
+//                     }
+//                 }
+//
+//             } catch (Exception e) {
+//                 e.printStackTrace();
+//             }
+//         } catch (Exception e) {
+//             e.printStackTrace();
+//         }
     }//GEN-LAST:event_menuCompilarMousePressed
 
     public void addKeywordHighlighting(String[] keywords, Color color) {
@@ -575,6 +650,7 @@ public class Frame extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 Frame frame = new Frame();
+                frame.setTitle("MiniPascal IDE");
                 frame.setVisible(true);
                 frame.setLocationRelativeTo(null);
             }
@@ -590,7 +666,9 @@ public class Frame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTextArea txtSalida;
+    private javax.swing.JTextArea txtSalidaSem;
     private javax.swing.JMenuItem menuAbrirTxt;
     private javax.swing.JMenu menuArchivo;
     private javax.swing.JMenu menuCompilar;

@@ -6,18 +6,21 @@ var
   arreglo: Array[1..50] of Integer;
   arreglo_bidi: Array[1..10, 1..5] of Integer;
   s: String;
+  bol: Boolean;
 
 Function f(): Integer;
 Begin
-  f := 3;
+  f := 3 + 6;
 end;
 
 begin
   { Iniciamos las variables }
+  bol := 10;
   lenght := 50;
   x := 10;
-  y := 5;
+  y := X;
   cont := 1;
+
 
   { Llenamos el arreglo bidimensional }
   For i := x Downto 1 Do
@@ -50,4 +53,3 @@ begin
 
   writeln('Gracias por usar Pascal!');
 end.
-
