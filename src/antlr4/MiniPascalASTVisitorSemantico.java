@@ -33,7 +33,7 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
     public Void visitAssignmentStatement(MiniPascalParser.AssignmentStatementContext ctx) {
         String expression = ctx.expression().getText();
         String variable = ctx.variable().getText();
-        salida += '\n' + ("Asignación: '" + ctx.variable().getText() + "' = " + ctx.expression().getText());
+        salida += ("\n\nAsignación: '" + ctx.variable().getText() + "' = " + ctx.expression().getText());
 //        if (tablaSimbolos.findSimbolo(expression)) {
 //            // Caso en que es una asignacion directa de una variable a otra, ej. x = y
 //            tablaSimbolos.getSimbolo(variable, currentScope).setValue(tablaSimbolos.getSimbolo(expression, currentScope).getValue());
@@ -100,6 +100,21 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
         return null;
     }
 
+    public void validacionTipos(String tipoAsignado) {
+        if (opAritmetica) {
+            salida += "\nError: Los operandos de expresiones aritméticas deben ser de tipo Integer";
+        }
+        else {
+            if (simboloIzquierdo instanceof SimboloFuncion){
+                salida += "\nError: En una función se debe retornar un valor del tipo correcto.\nTipo a retornar: "+simboloIzquierdo.getType() + "\nTipo retornado: " + tipoAsignado;
+            }
+            else {
+                salida += "\nError: En una asignación ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nLado derecho: " + tipoAsignado;
+
+            }
+        }
+    }
+
     @Override
     public Void visitFactor(MiniPascalParser.FactorContext ctx) {
         if (ctx.variable() != null) {
@@ -108,19 +123,9 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
             if (tablaSimbolos.findSimbolo(variable)) {
                 Simbolo sim = tablaSimbolos.getSimbolo(variable, currentScope);
                 if (sim != null) {
-//                if (!sim.getCategory().equalsIgnoreCase(simboloIzquierdo.getCategory())) {
-//                    salida += "\nError: En una asignación, ambos lados deben tener la misma categoría.\nLado izquierdo: "+ simboloIzquierdo.getCategory() + "\nLado derecho: " + sim.getCategory();
-//                }
-                    if (!sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
-                        if (simboloIzquierdo instanceof SimboloFuncion){
-                            salida += "\nError: En una función, se debe retornar un valor del tipo correcto.\nTipo a retornar: "+simboloIzquierdo.getType() + "\nTipo retornado: " + sim.getType();
-                        }
-                        else {
-                            salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nLado derecho: " + sim.getType();
-                        }
-                    }
-                    else {
-                        if (opAritmetica) {
+                    if (!(simboloIzquierdo instanceof SimboloArreglo)) {
+                        if (sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
+                            if (opAritmetica) {
 //                            if (simboloIzquierdo.getValue() instanceof Integer) {
 //                                System.out.println("SIMBOLO IZ ES INT " + simboloIzquierdo.getName());
 //                            }
@@ -134,28 +139,33 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
 //                                System.out.println("SIMBOLO ES STRING " + sim.getName());
 //                            }
 
-                            if (simboloIzquierdo.getValue() instanceof Integer && sim.getValue() instanceof Integer) {
-                                simboloIzquierdo.setValue((Integer)simboloIzquierdo.getValue() + (Integer)sim.getValue());
+                                if (simboloIzquierdo.getValue() instanceof Integer && sim.getValue() instanceof Integer) {
+                                    simboloIzquierdo.setValue((Integer)simboloIzquierdo.getValue() + (Integer)sim.getValue());
+                                }
+                                else if (simboloIzquierdo.getValue() instanceof String && sim.getValue() instanceof String) {
+                                    int simIzValue = Integer.parseInt((String) simboloIzquierdo.getValue());
+                                    int simValue = Integer.parseInt((String) sim.getValue());
+                                    simboloIzquierdo.setValue(simIzValue+simValue);
+                                }
                             }
-                            else if (simboloIzquierdo.getValue() instanceof String && sim.getValue() instanceof String) {
-                                int simIzValue = Integer.parseInt((String) simboloIzquierdo.getValue());
-                                int simValue = Integer.parseInt((String) sim.getValue());
-                                simboloIzquierdo.setValue(simIzValue+simValue);
+                            else {
+                                System.out.println("SIMBOLO IZ ES " + simboloIzquierdo.getName() + " = " + simboloIzquierdo.getValue());
+                                simboloIzquierdo.setValue(sim.getValue());
                             }
                         }
                         else {
-                            System.out.println("SIMBOLO IZ ES " + simboloIzquierdo.getName() + " = " + simboloIzquierdo.getValue());
-                            simboloIzquierdo.setValue(sim.getValue());
+                            validacionTipos(sim.getType());
                         }
+                        visit(ctx.variable());
                     }
                 }
             }
-            visit(ctx.variable()); // Visitar el nodo de la variable
+             // Visitar el nodo de la variable
         } else if (ctx.expression() != null) {
             // CASO EN QUE UN TERMINO ES OTRA EXPRESION -> (a + b)
             visit(ctx.expression());
         } else if (ctx.functionDesignator() != null) {
-            // CASO DE NUMERO LITERAL
+            // CASO NO SE QUE ES ESTE
 //            if (!simboloIzquierdo.getType().equalsIgnoreCase("Integer")) {
 //                salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nLado derecho: Integer";
 //            }
@@ -164,22 +174,35 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                 simboloIzquierdo.setValue(ctx.functionDesignator().getText() + " funcDesig");
             visit(ctx.functionDesignator());
         } else if (ctx.unsignedConstant() != null) {
-            // CASO DE CONSTANTE
-            // revisar caso en que sea un arreglo, asignar el int a arr[indice]
-            if (!simboloIzquierdo.getType().equalsIgnoreCase("Integer")) {
-                salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nLado derecho: Integer";
-            }
-            else {
-                int nuevo = Integer.parseInt(ctx.unsignedConstant().getText());
-                if (opAritmetica) {
-                    // Hacer la suma/resta con el valor ya almacenado
-                    simboloIzquierdo.setValue((Integer)simboloIzquierdo.getValue() + (opAditivo.equals("+") ? + nuevo : - nuevo));
+            // CASO DE VALOR CONSTANTE (ej. 10, 'Hola'...)
+            String tipoConst = "Integer",
+                constante = ctx.unsignedConstant().getText();
+            if (constante.contains("'") && constante.length() >= 3) {
+                constante = constante.substring(1, constante.indexOf("'", 1));
+                if (constante.length() == 1) {
+                    tipoConst = "Character";
                 }
                 else {
-                    simboloIzquierdo.setValue(nuevo);
+                    tipoConst = "String";
                 }
             }
-
+            // Validar el tipo de la constante con el tipo a asignar
+            if (simboloIzquierdo.getType().equalsIgnoreCase(tipoConst)
+                    && !(simboloIzquierdo instanceof SimboloArreglo)) {
+                if (simboloIzquierdo.getType().equalsIgnoreCase("Integer")) {
+                    int numero = Integer.parseInt(constante);
+                    if (opAritmetica) {
+                        // Hacer la suma/resta con el valor ya almacenado
+                        simboloIzquierdo.setValue((Integer)simboloIzquierdo.getValue() + (opAditivo.equals("+") ? + numero : - numero));
+                    }
+                    else {
+                        simboloIzquierdo.setValue(numero);
+                    }
+                }
+            }
+            else {
+                validacionTipos(tipoConst);
+            }
             visit(ctx.unsignedConstant());
         } else if (ctx.NOT() != null) {
             if (opAritmetica) {
