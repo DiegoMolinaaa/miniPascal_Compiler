@@ -7,6 +7,9 @@ var
   arreglo_bidi: Array[1..10, 1..5] of Integer;
   s: String;
   bol: Boolean;
+const
+  WELCOME_MESSAGE = 'Bienvenido a MiniPascal!';
+  CHAR_EXAMPLE = 'A';
 
 Function f(): Integer;
 Begin
@@ -18,7 +21,7 @@ begin
   bol := 10;
   lenght := 50;
   x := 10;
-  y := X;
+  y := x;
   cont := 1;
 
 
