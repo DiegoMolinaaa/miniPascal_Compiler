@@ -1,8 +1,6 @@
 package antlr4;
 
 import org.antlr.v4.runtime.tree.ParseTree;
-
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 
 public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
@@ -27,63 +25,52 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
         return salida;
     }
 
-    // Metodos movidos
-
     @Override
     public Void visitAssignmentStatement(MiniPascalParser.AssignmentStatementContext ctx) {
-        String expression = ctx.expression().getText();
         String variable = ctx.variable().getText();
         salida += ("\n\nAsignación: '" + ctx.variable().getText() + "' = " + ctx.expression().getText());
-//        if (tablaSimbolos.findSimbolo(expression)) {
-//            // Caso en que es una asignacion directa de una variable a otra, ej. x = y
-//            tablaSimbolos.getSimbolo(variable, currentScope).setValue(tablaSimbolos.getSimbolo(expression, currentScope).getValue());
-//        }
-//        else {
-            // Extraer solo el nombre de la variable array
-            if (variable.contains("[")) {
-                int indiceLlave = variable.indexOf('[', 0);
-                if(indiceLlave > 0) {
-                    variable = variable.substring(0, indiceLlave);
-                }
+        // Extraer solo el nombre de la variable array
+        if (variable.contains("[")) {
+            int indiceLlave = variable.indexOf('[', 0);
+            if(indiceLlave > 0) {
+                variable = variable.substring(0, indiceLlave);
             }
-            String scope = currentScope;
-            if (!tablaSimbolos.findSimbolo(variable)) {
-                // Si es una funcion, cambiar el scope al scope de la funcion
-                scope = variable;
-            }
-            Simbolo sim = tablaSimbolos.getSimbolo(variable, scope);
-            opAritmetica = false;
-            if (sim != null) {
-                simboloIzquierdo = sim;
-
-            }
-//        }
+        }
+        String scope = currentScope;
+        if (!tablaSimbolos.findSimbolo(variable)) {
+            // Si es una funcion, cambiar el scope al scope de la funcion
+            scope = variable;
+        }
+        Simbolo sim = tablaSimbolos.getSimbolo(variable, scope);
+        opAritmetica = false;
+        if (sim != null) {
+            simboloIzquierdo = sim;
+        }
         visit(ctx.expression());
         return null;
     }
 
     // Operaciones entre tipos compatibles
-    @Override
-    public Void visitExpression(MiniPascalParser.ExpressionContext ctx) {
-//        salida += '\n' + ("    Expresion:");
-//        salida += '\n' + ("    Expresion simple: " + ctx.simpleExpression().getText());
-        visit(ctx.simpleExpression());
-        if(ctx.relationaloperator() != null){
-            opAritmetica = false;
-//            salida += '\n' + ("      Op relacional: " + ctx.relationaloperator().getText());
-            visit(ctx.simpleExpression());
-        }
-        return null;
-    }
+//    @Override
+//    public Void visitExpression(MiniPascalParser.ExpressionContext ctx) {
+////        salida += '\n' + ("    Expresion:");
+////        salida += '\n' + ("    Expresion simple: " + ctx.simpleExpression().getText());
+//        visit(ctx.simpleExpression());
+//        if(ctx.relationaloperator() != null){
+//            opAritmetica = false;
+////            salida += '\n' + ("      Op relacional: " + ctx.relationaloperator().getText());
+//            visit(ctx.simpleExpression());
+//        }
+//        return null;
+//    }
 
     @Override
     public Void visitSimpleExpression(MiniPascalParser.SimpleExpressionContext ctx) {
-        visit(ctx.term()); // Visitar el nodo del término
+        visit(ctx.term());
         if (ctx.additiveoperator() != null) {
-//            salida += ("\nOperador Aditivo: " + ctx.additiveoperator().getText());
             opAritmetica = true;
             opAditivo = ctx.additiveoperator().getText();
-            visit(ctx.simpleExpression()); // Visitar el nodo de la expresión simple
+            visit(ctx.simpleExpression());
         }
 
         return null;
@@ -110,7 +97,6 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
             }
             else {
                 salida += "\nError: En una asignación ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nLado derecho: " + tipoAsignado;
-
             }
         }
     }
@@ -138,7 +124,6 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                                 }
                                 simboloIzquierdo.setValue(valorActual + (opAditivo.equals("+") ? +valorVariable : -valorVariable));
                             }
-//                            else if (o)
                             // Realizar la asignacion del valor solito ej. x = y
                             else {
                                 simboloIzquierdo.setValue(sim.getValue());
@@ -183,8 +168,9 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                 if (simboloIzquierdo.getType().equalsIgnoreCase("Integer")) {
                     int numero = Integer.parseInt(constante);
                     if (opAritmetica) {
+                        int valorActual = simboloIzquierdo.getValue() == null ? 0 : (Integer)simboloIzquierdo.getValue();
                         // Hacer la suma/resta con el valor ya almacenado
-                        simboloIzquierdo.setValue((Integer)simboloIzquierdo.getValue() + (opAditivo.equals("+") ? + numero : - numero));
+                        simboloIzquierdo.setValue(valorActual + (opAditivo.equals("+") ? + numero : - numero));
                     }
                     else {
                         simboloIzquierdo.setValue(numero);

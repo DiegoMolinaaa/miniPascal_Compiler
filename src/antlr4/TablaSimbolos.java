@@ -36,7 +36,8 @@ public class TablaSimbolos {
         for (int i = scopeStack.size() - 1; i >= 0; i--) {
             String scope = scopeStack.get(i);
             for (Simbolo simbolo : simbolos) {
-                if (simbolo.getName().equals(name) && simbolo.getScope().equals(scope)) {
+//                if (simbolo.getName().equals(name) && simbolo.getScope().equals(scope)) {
+                if (simbolo.getName().equalsIgnoreCase(name) && simbolo.getScope().equalsIgnoreCase(scope)) {
                     return true;
                 }
             }
@@ -46,7 +47,8 @@ public class TablaSimbolos {
 
     public Simbolo getSimbolo(String name, String scope) {
         for (Simbolo simbolo : simbolos) {
-            if (simbolo.getName().equals(name) && simbolo.getScope().equals(scope)) {
+//            if (simbolo.getName().equals(name) && simbolo.getScope().equals(scope)) {
+            if (simbolo.getName().equalsIgnoreCase(name) && simbolo.getScope().equalsIgnoreCase(scope)) {
                 return simbolo;
             }
         }
