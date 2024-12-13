@@ -1,6 +1,8 @@
 package antlr4;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 
 public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
@@ -50,19 +52,13 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
         return null;
     }
 
-    // Operaciones entre tipos compatibles
-//    @Override
-//    public Void visitExpression(MiniPascalParser.ExpressionContext ctx) {
-////        salida += '\n' + ("    Expresion:");
-////        salida += '\n' + ("    Expresion simple: " + ctx.simpleExpression().getText());
-//        visit(ctx.simpleExpression());
-//        if(ctx.relationaloperator() != null){
-//            opAritmetica = false;
-////            salida += '\n' + ("      Op relacional: " + ctx.relationaloperator().getText());
-//            visit(ctx.simpleExpression());
-//        }
-//        return null;
-//    }
+//    // Operaciones entre tipos compatibles
+    @Override
+    public Void visitExpression(MiniPascalParser.ExpressionContext ctx) {
+        opAritmetica = ctx.relationaloperator() == null;
+        visit(ctx.simpleExpression());
+        return null;
+    }
 
     @Override
     public Void visitSimpleExpression(MiniPascalParser.SimpleExpressionContext ctx) {
@@ -105,33 +101,77 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
         if (ctx.variable() != null) {
             // CASO EN QUE ES UNA VARIABLE
             String variable = ctx.variable().getText();
+                // simboloIzqueirdo instanceof function entonces buscar la variable en el SCOPE DEL FUCNTIONnnnnnnn
             if (tablaSimbolos.findSimbolo(variable)) {
-                Simbolo sim = tablaSimbolos.getSimbolo(variable, currentScope);
-                if (sim != null) {
-                    if (!(simboloIzquierdo instanceof SimboloArreglo)) {
-                        if (sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
-                            // Realizar la suma/resta de los valores
-                            if (opAritmetica) {
-                                int valorActual = 0, valorVariable = 0;
-                                if (simboloIzquierdo.getValue() instanceof Integer && sim.getValue() instanceof Integer) {
-                                    valorActual = (Integer)simboloIzquierdo.getValue();
-                                    valorVariable = (Integer)sim.getValue();
+                    Simbolo sim = tablaSimbolos.getSimbolo(variable, currentScope);
+                    if (sim != null) {
+                        if (!(simboloIzquierdo instanceof SimboloArreglo)) {
+                            if (sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
+                                // Realizar la suma/resta de los valores
+                                if (opAritmetica) {
+
+                                    Object valorActual = simboloIzquierdo.getValue() == null ? 0 : simboloIzquierdo.getValue();
+                                    int valorVariable = 0;
+
+                                    if (sim.getValue() instanceof Integer) {
+                                        valorVariable = (Integer)sim.getValue();
+                                    }
+                                    else if (sim.getValue() instanceof String) {
+                                        valorVariable = Integer.parseInt((String)sim.getValue());
+                                    }
+                                    if (valorActual instanceof String) {
+                                        valorActual = Integer.parseInt((String)simboloIzquierdo.getValue());
+                                    }
+
+                                    simboloIzquierdo.setValue((Integer)valorActual + (opAditivo.equals("+") ? +valorVariable : -valorVariable));
                                 }
-                                else if (simboloIzquierdo.getValue() instanceof String && sim.getValue() instanceof String) {
-                                    valorActual = Integer.parseInt((String)simboloIzquierdo.getValue());
-                                    valorVariable = Integer.parseInt((String)sim.getValue());
+                                // Realizar la asignacion del valor solito ej. x = y
+                                else {
+                                    simboloIzquierdo.setValue(sim.getValue());
                                 }
-                                simboloIzquierdo.setValue(valorActual + (opAditivo.equals("+") ? +valorVariable : -valorVariable));
                             }
-                            // Realizar la asignacion del valor solito ej. x = y
                             else {
-                                simboloIzquierdo.setValue(sim.getValue());
+                                validacionTipos(sim.getType());
+                            }
+                            visit(ctx.variable());
+                        }
+                    }
+
+
+            }
+            else if (simboloIzquierdo instanceof SimboloFuncion) {
+                System.out.println("HOLAAA ");
+                for (Simbolo sim : ((SimboloFuncion) simboloIzquierdo).parameters) {
+                    if (sim.getName().equalsIgnoreCase(variable)) {
+                        System.out.println("me encontre en parametros " + variable + "=" + sim.getValue());
+                        if (sim != null) {
+                            if (sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
+                                // Realizar la suma/resta de los valores
+                                if (opAritmetica) {
+                                    Object valorActual = simboloIzquierdo.getValue() == null ? 0 : simboloIzquierdo.getValue();
+                                    int valorVariable = 0;
+
+                                    if (sim.getValue() instanceof Integer) {
+                                        valorVariable = (Integer)sim.getValue();
+                                    }
+                                    else if (sim.getValue() instanceof String) {
+                                        valorVariable = Integer.parseInt((String)sim.getValue());
+                                    }
+                                    if (valorActual instanceof String) {
+                                        valorActual = Integer.parseInt((String)simboloIzquierdo.getValue());
+                                    }
+                                    simboloIzquierdo.setValue((Integer)valorActual + (opAditivo.equals("+") ? +valorVariable : -valorVariable));
+                                }
+                                // Realizar la asignacion del valor solito ej. x = y
+                                else {
+                                    simboloIzquierdo.setValue(sim.getValue());
+                                }
+                            }
+                            else {
+                                validacionTipos(sim.getType());
                             }
                         }
-                        else {
-                            validacionTipos(sim.getType());
-                        }
-                        visit(ctx.variable());
+                        break;
                     }
                 }
             }
@@ -141,23 +181,20 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
             visit(ctx.expression());
         } else if (ctx.functionDesignator() != null) {
             // CASO DE LLAMADO A FUNCIONES
-//            String nomFuncion = ctx.functionDesignator().identifier().getText();
-//            if (tablaSimbolos.findSimbolo(nomFuncion)) {
-//                Simbolo sim = tablaSimbolos.getSimbolo(nomFuncion, currentScope);
-//                if (sim != null) {
-//                    if (!(simboloIzquierdo instanceof SimboloFuncion)) {
-//                        SimboloFuncion funcion = (SimboloFuncion)sim;
-//                        if(!simboloIzquierdo.getType().equalsIgnoreCase(funcion.getType())) {
-//                            salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nValor retornado en el llamado: Integer";
-//                        }
-//                        else {
-//                            visit(ctx.functionDesignator());
-//                            simboloIzquierdo.setValue(funcion.getValue());
-//                        }
-//                    }
-//                }
-//            }
-
+            String nomFuncion = ctx.functionDesignator().identifier().getText();
+            if (tablaSimbolos.findSimbolo(nomFuncion)) {
+                Simbolo simFuncion = tablaSimbolos.getSimbolo(nomFuncion, currentScope);
+                if (simFuncion != null) {
+                    if(!simboloIzquierdo.getType().equalsIgnoreCase(simFuncion.getType())) {
+                        salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "
+                                +simboloIzquierdo.getType() + "\nTipo retornado en el llamado: " + simFuncion.getType();
+                    }
+                    else {
+                        visit(ctx.functionDesignator());
+                        simboloIzquierdo.setValue(simFuncion.getValue());
+                    }
+                }
+            }
             visit(ctx.functionDesignator());
         } else if (ctx.unsignedConstant() != null) {
             // CASO DE VALOR CONSTANTE (ej. 10, 'Hola'...)
@@ -179,7 +216,7 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                     if (opAritmetica) {
                         int valorActual = simboloIzquierdo.getValue() == null ? 0 : (Integer)simboloIzquierdo.getValue();
                         // Hacer la suma/resta con el valor ya almacenado
-                        simboloIzquierdo.setValue(valorActual + (opAditivo.equals("+") ? + numero : - numero));
+                        simboloIzquierdo.setValue(valorActual + (opAditivo.equals("+") ? +numero : -numero));
                     }
                     else {
                         // Cuando no es operacion aritmetica, solo se asigna el valor
@@ -218,33 +255,45 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
     @Override
     public Void visitFunctionDesignator(MiniPascalParser.FunctionDesignatorContext ctx) {
         String nombreFuncion = ctx.identifier().getText();
-        salida += "\n\nLlamado a la función " + nombreFuncion;
+        salida += "\n\nLlamado a la función " + nombreFuncion; // no se porque ya no sale esto
+        String previousScope = currentScope;
+        currentScope = nombreFuncion;
+        tablaSimbolos.enterScope(currentScope);
+
         if (tablaSimbolos.findSimbolo(nombreFuncion)) {
-            Simbolo simbolo = tablaSimbolos.getSimbolo(nombreFuncion, nombreFuncion);
-            System.out.println("existo " + simbolo.getScope());
+            Simbolo simbolo = tablaSimbolos.getSimbolo(nombreFuncion, currentScope);
             if (simbolo != null) {
                 if (simbolo instanceof SimboloFuncion) {
                     SimboloFuncion funcion = (SimboloFuncion)simbolo;
                     if (ctx.parameterList() != null) {
                         for (int i = 0; i < ctx.parameterList().actualParameter().size(); i++) {
                             String parametro = ctx.parameterList().actualParameter(i).getText();
+                            String tipoRequerido = funcion.parameters.get(i).getType();
+
                             if (tablaSimbolos.findSimbolo(parametro)) {
                                 // Es una variable
-                                System.out.println("param " + parametro);
-                                Simbolo param = tablaSimbolos.getSimbolo(parametro, nombreFuncion);
-                                String tipoRequerido = funcion.parameters.get(i).getType(),
-                                    tipoRecibido = param.getType();
+                                Simbolo simParametro = tablaSimbolos.getSimbolo(parametro, previousScope);
+                                String tipoRecibido = simParametro.getType();
                                 if (!tipoRequerido.equalsIgnoreCase(tipoRecibido)) {
                                     salida += "\nError: Tipo de parámetro incompatible.\nTipo esperado: " + tipoRequerido + "\nTipo recibido: " + tipoRecibido + "\n";
                                     return null;
                                 }
+                                funcion.parameters.get(i).setValue(simParametro.getValue());
+                                funcion.parameters.get(i).setType(simParametro.getType());
+                                funcion.parameters.get(i).setCategory(simParametro.getCategory());
+                            }
+                            else {
+                                // Es una constante
+                                funcion.parameters.get(i).setValue(parametro);
                             }
                         }
                     }
                 }
             }
         }
-                        visit(ctx.parameterList());
+        currentScope = previousScope;
+        tablaSimbolos.exitScope();
+        visit(ctx.parameterList());
         return null;
     }
 

@@ -1,6 +1,6 @@
 program SumaNumeros;
 var
-  i, x: integer;
+  x: integer;
   total: integer;
 
 function Sumar(a, b: integer): integer;
@@ -12,10 +12,7 @@ begin
   x := 10;
   total := 0;
 
-  for i := 1 to x do
-  begin
-    total := Sumar(total, i);
-  end;
+total := Sumar(x, 3);
 
   write('El total es: ', total);
 end.
