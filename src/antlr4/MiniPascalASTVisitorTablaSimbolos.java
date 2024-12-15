@@ -271,7 +271,7 @@ public class MiniPascalASTVisitorTablaSimbolos extends MiniPascalBaseVisitor<Obj
                 }
             }
         }
-        if (!tablaSimbolos.addSimbolo(new SimboloFuncion( procedureName, "procedure", previousScope, parametrosProcedimiento))) {
+        if (!tablaSimbolos.addSimbolo(new SimboloFuncion( procedureName, "procedure", currentScope, parametrosProcedimiento))) {
             salida += '\n' +("Error: Procedimiento '" + procedureName + "' ya declarado en el ámbito '" + previousScope + "'.");
         }
         // Volver al ámbito anterior

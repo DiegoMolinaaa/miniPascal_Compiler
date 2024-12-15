@@ -374,6 +374,7 @@ public class Frame extends javax.swing.JFrame {
 
 
         TablaSimbolos tablaSimbolos = new TablaSimbolos();
+        Codigo3Direcciones codigo3Direcciones = new Codigo3Direcciones();
         txtSalida.setText("");
         txtSalidaSem.setText("");
         if (txtCodigo.getText().length() > 0 && !txtCodigo.getText().isBlank() && !txtCodigo.getText().isEmpty()) {
@@ -430,6 +431,15 @@ public class Frame extends javax.swing.JFrame {
                     tablaSimbolos.printTablaSimbolos();
 
                     //Generacion de Codigo Intermedio (3 Direcciones)
+                    MiniPascalASTVisitorTAC visitorTAC = new MiniPascalASTVisitorTAC(codigo3Direcciones, tablaSimbolos);
+                    visitorTAC.generarSalida(tree);
+
+                    //Generacion Codigo LLVM
+                    String nombreArchivo = archivo.getName().replace(".txt", ".ll");
+                    System.out.println("Generando archivo " + nombreArchivo);
+                    GenerarCodigoLLVM generadorLLVM = new GenerarCodigoLLVM(nombreArchivo, codigo3Direcciones, tablaSimbolos);
+                    System.out.println("Codigo generado: ");
+                    generadorLLVM.generarCodigo();
 
                 }
                 else {

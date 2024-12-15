@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 public class SimboloFuncion extends Simbolo {
     ArrayList<Simbolo> parameters; // Parámetros de entrada
+    public Codigo3Direcciones tacFunciones = new Codigo3Direcciones();
 
     public SimboloFuncion(String name, String type, String scope, ArrayList<Simbolo> parameters) {
         super(name, type, scope, null, "function");
@@ -15,5 +16,9 @@ public class SimboloFuncion extends Simbolo {
     public String toString() {
         return String.format("Name: %s, ReturnType: %s, Scope: %s, Value: %s, Category: %s, Parameters: %s",
                 name, type, scope, value, category, parameters);
+    }
+
+    public ArrayList<Simbolo> getParameters() {
+        return parameters;
     }
 }

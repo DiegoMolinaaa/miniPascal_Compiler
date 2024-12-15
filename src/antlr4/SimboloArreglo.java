@@ -17,4 +17,12 @@ public class SimboloArreglo extends Simbolo {
         return super.toString() + String.format(", Dimensions: %d, Sizes: %s",
                 dimensions, Arrays.toString(sizes));
     }
+
+    public int getDimensions() {
+        return dimensions;
+    }
+
+    public int[] getSizes() {
+        return sizes;
+    }
 }
