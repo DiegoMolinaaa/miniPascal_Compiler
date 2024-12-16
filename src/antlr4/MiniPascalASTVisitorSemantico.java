@@ -17,11 +17,11 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
         this.tablaSimbolos = tablaSimbolos;
     }
 
-    String salida = "\nVisitor Semantico";
+    String salida = "";
     public String generarSalida(ParseTree tree) {
         visit(tree);
-        if (salida == "\n\nErrores Visitor Semantico\n") {
-            salida += "No se encontraron errores\nCompilación exitosa!";
+        if (salida.isEmpty()) {
+            salida += "No se encontraron errores.\n¡Compilación exitosa!";
         }
         return salida;
     }
