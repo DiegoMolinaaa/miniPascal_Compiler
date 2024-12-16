@@ -440,6 +440,7 @@ public class Frame extends javax.swing.JFrame {
                     GenerarCodigoLLVM generadorLLVM = new GenerarCodigoLLVM(nombreArchivo, codigo3Direcciones, tablaSimbolos);
                     System.out.println("Codigo generado: ");
                     generadorLLVM.generarCodigo();
+                    //generadorLLVM.ejecutarCodigo();
 
                 }
                 else {

@@ -17,5 +17,5 @@ begin
     total := Sumar(total, i);
   end;
 
-  write('El total es: ', total);
+  writeln('El total es: ', total);
 end.

@@ -177,11 +177,45 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
     private String processExpression(MiniPascalParser.ExpressionContext ctx) {
         // Caso 1: Expresión relacional
         if (ctx.relationaloperator() != null) {
+            // Process left side, checking for global variables
             String left = processSimpleExpression(ctx.simpleExpression());
+
+            // Check if left is a global variable and needs loading
+            if (isGlobalVariable(left)) {
+                if(!currentScope.equalsIgnoreCase("global")) {
+                    if(tablaSimbolos.getSimbolo(currentScope, currentScope) != null){
+                        SimboloFuncion temporal = (SimboloFuncion) tablaSimbolos.getSimbolo(currentScope, currentScope);
+                        String tempLeft = temporal.tacFunciones.nuevoTemporal();
+                        temporal.tacFunciones.agregarQuintuplo("load", left, tempLeft);
+                        left = tempLeft;
+                    }
+                } else {
+                    String tempLeft = codigo3Direcciones.nuevoTemporal();
+                    codigo3Direcciones.agregarQuintuplo("load", left, tempLeft);
+                    left = tempLeft;
+                }
+            }
+
+            // Process right side, checking for global variables
             String right = processExpression(ctx.expression());
+            if (isGlobalVariable(right)) {
+                if(!currentScope.equalsIgnoreCase("global")) {
+                    if(tablaSimbolos.getSimbolo(currentScope, currentScope) != null){
+                        SimboloFuncion temporal = (SimboloFuncion) tablaSimbolos.getSimbolo(currentScope, currentScope);
+                        String tempRight = temporal.tacFunciones.nuevoTemporal();
+                        temporal.tacFunciones.agregarQuintuplo("load", right, tempRight);
+                        right = tempRight;
+                    }
+                } else {
+                    String tempRight = codigo3Direcciones.nuevoTemporal();
+                    codigo3Direcciones.agregarQuintuplo("load", right, tempRight);
+                    right = tempRight;
+                }
+            }
+
             String op = ctx.relationaloperator().getText();
 
-            if(!currentScope.equalsIgnoreCase( "global")){
+            if(!currentScope.equalsIgnoreCase("global")){
                 if(tablaSimbolos.getSimbolo(currentScope, currentScope) != null){
                     SimboloFuncion temporal = (SimboloFuncion) tablaSimbolos.getSimbolo(currentScope, currentScope);
                     String temp = temporal.tacFunciones.nuevoTemporal();
@@ -189,8 +223,7 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
 
                     return temp;
                 }
-
-            }else{
+            } else {
                 // Crear un temporal para guardar el resultado
                 String temp = codigo3Direcciones.nuevoTemporal();
                 codigo3Direcciones.agregarQuintuplo(op, left, right, temp);
@@ -206,11 +239,45 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
     private String processSimpleExpression(MiniPascalParser.SimpleExpressionContext ctx) {
         // Caso 1: Operación aditiva
         if (ctx.additiveoperator() != null) {
+            // Process left side, checking for global variables
             String left = processTerm(ctx.term());
+
+            // Check if left is a global variable and needs loading
+            if (isGlobalVariable(left)) {
+                if(!currentScope.equalsIgnoreCase("global")) {
+                    if(tablaSimbolos.getSimbolo(currentScope, currentScope) != null){
+                        SimboloFuncion temporal = (SimboloFuncion) tablaSimbolos.getSimbolo(currentScope, currentScope);
+                        String tempLeft = temporal.tacFunciones.nuevoTemporal();
+                        temporal.tacFunciones.agregarQuintuplo("load", left, tempLeft);
+                        left = tempLeft;
+                    }
+                } else {
+                    String tempLeft = codigo3Direcciones.nuevoTemporal();
+                    codigo3Direcciones.agregarQuintuplo("load", left, tempLeft);
+                    left = tempLeft;
+                }
+            }
+
+            // Process right side, checking for global variables
             String right = processSimpleExpression(ctx.simpleExpression());
+            if (isGlobalVariable(right)) {
+                if(!currentScope.equalsIgnoreCase("global")) {
+                    if(tablaSimbolos.getSimbolo(currentScope, currentScope) != null){
+                        SimboloFuncion temporal = (SimboloFuncion) tablaSimbolos.getSimbolo(currentScope, currentScope);
+                        String tempRight = temporal.tacFunciones.nuevoTemporal();
+                        temporal.tacFunciones.agregarQuintuplo("load", right, tempRight);
+                        right = tempRight;
+                    }
+                } else {
+                    String tempRight = codigo3Direcciones.nuevoTemporal();
+                    codigo3Direcciones.agregarQuintuplo("load", right, tempRight);
+                    right = tempRight;
+                }
+            }
+
             String op = ctx.additiveoperator().getText();
 
-            if(!currentScope.equalsIgnoreCase( "global")){
+            if(!currentScope.equalsIgnoreCase("global")){
                 if(tablaSimbolos.getSimbolo(currentScope, currentScope) != null){
                     SimboloFuncion temporal = (SimboloFuncion) tablaSimbolos.getSimbolo(currentScope, currentScope);
                     String temp = temporal.tacFunciones.nuevoTemporal();
@@ -218,15 +285,13 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
 
                     return temp;
                 }
-
-            }else{
+            } else {
                 // Crear un temporal para guardar el resultado
                 String temp = codigo3Direcciones.nuevoTemporal();
                 codigo3Direcciones.agregarQuintuplo(op, left, right, temp);
 
                 return temp;
             }
-
         }
 
         // Caso 2: Término único
@@ -292,7 +357,29 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
     private String processUnsignedFactor(MiniPascalParser.FactorContext ctx) {
         // Caso 1: Variable
         if (ctx.variable() != null) {
-            return ctx.variable().getText();
+            String variable = ctx.variable().getText();
+            if(variable.contains("[")){
+                variable = variable.substring(0, variable.indexOf("["));
+            }
+
+            // Check if it's a global variable
+            if (isGlobalVariable(variable)) {
+                // Generate a LOAD_GLOBAL quintuplo
+                if(!currentScope.equalsIgnoreCase("global")) {
+                    if(tablaSimbolos.getSimbolo(currentScope, currentScope) != null){
+                        SimboloFuncion temporal = (SimboloFuncion) tablaSimbolos.getSimbolo(currentScope, currentScope);
+                        String tempLoaded = temporal.tacFunciones.nuevoTemporal();
+                        temporal.tacFunciones.agregarQuintuplo("load", variable, tempLoaded);
+                        return tempLoaded;
+                    }
+                } else {
+                    String tempLoaded = codigo3Direcciones.nuevoTemporal();
+                    codigo3Direcciones.agregarQuintuplo("load", variable, tempLoaded);
+                    return tempLoaded;
+                }
+            }
+
+            return variable;
         }
 
         // Caso 2: Constante
@@ -345,7 +432,11 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
         return "";
     }
 
-    //Write
+    private boolean isGlobalVariable(String variable) {
+        // Logic to check if the variable is in the global scope
+        return tablaSimbolos.getSimbolo(variable, "global") != null;
+    }
+        //Write
     @Override
     public Void visitWriteStatement(MiniPascalParser.WriteStatementContext ctx) {
         // Determinar si es write o writeln
@@ -362,11 +453,28 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
         if(!currentScope.equalsIgnoreCase( "global")) {
             if (tablaSimbolos.getSimbolo(currentScope, currentScope) != null) {
                 SimboloFuncion temporal = (SimboloFuncion) tablaSimbolos.getSimbolo(currentScope, currentScope);
+                if(!segundoParametro.equals("_")) {
+                    if(tablaSimbolos.getSimbolo(segundoParametro, currentScope) != null) {
+                        String temp = temporal.tacFunciones.nuevoTemporal();
+                        temporal.tacFunciones.agregarQuintuplo("load", cadena, temp);
+                    }
+                }
                 temporal.tacFunciones.agregarQuintuplo(writeType, cadena, segundoParametro, "_");
             }
         }else {
             // Generar el quíntuplo para la operación write/writeln
-            codigo3Direcciones.agregarQuintuplo(writeType, cadena, segundoParametro, "_");
+            if (!segundoParametro.equals("_")) {
+                if (tablaSimbolos.getSimbolo(segundoParametro, currentScope) != null) {
+                    Simbolo s = tablaSimbolos.getSimbolo(segundoParametro, currentScope);
+                    String temp = codigo3Direcciones.nuevoTemporal();
+                    codigo3Direcciones.agregarQuintuplo("load", segundoParametro, temp);
+                    codigo3Direcciones.agregarQuintuplo(writeType, cadena, temp, s.getType());
+                } else {
+                    codigo3Direcciones.agregarQuintuplo(writeType, cadena, segundoParametro, "_");
+                }
+            } else {
+                codigo3Direcciones.agregarQuintuplo(writeType, cadena, segundoParametro, "_");
+            }
         }
 
         return null;
@@ -538,7 +646,10 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
                 SimboloFuncion temporal = (SimboloFuncion) tablaSimbolos.getSimbolo(currentScope, currentScope);
                 // Crear etiquetas para el inicio y la salida del ciclo
                 String inicioEtiqueta = temporal.tacFunciones.nuevaEtiqueta(); // Etiqueta para evaluar la condición
+                String trueEtiqueta = temporal.tacFunciones.nuevaEtiqueta(); // Etiqueta para el bloque de instrucciones
                 String salidaEtiqueta = temporal.tacFunciones.nuevaEtiqueta(); // Etiqueta para salir del ciclo
+
+                temporal.tacFunciones.agregarQuintuplo("goto", inicioEtiqueta, "", "");
 
                 // Etiqueta de inicio del ciclo
                 temporal.tacFunciones.agregarQuintuplo("label", inicioEtiqueta, "", "");
@@ -547,8 +658,9 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
                 String condicionTemporal = processExpression(ctx.expression());
 
                 // Saltar a la salida si la condición es falsa
-                temporal.tacFunciones.agregarQuintuplo("ifFalse", condicionTemporal, "", salidaEtiqueta);
+                temporal.tacFunciones.agregarQuintuplo("ifFalse", condicionTemporal, trueEtiqueta, salidaEtiqueta);
 
+                temporal.tacFunciones.agregarQuintuplo("label", trueEtiqueta, "", "");
                 // Procesar el bloque de instrucciones del ciclo
                 visit(ctx.statement());
 
@@ -563,8 +675,10 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
 
             // Crear etiquetas para el inicio y la salida del ciclo
             String inicioEtiqueta = codigo3Direcciones.nuevaEtiqueta(); // Etiqueta para evaluar la condición
+            String trueEtiqueta = codigo3Direcciones.nuevaEtiqueta(); // Etiqueta para el bloque de instrucciones
             String salidaEtiqueta = codigo3Direcciones.nuevaEtiqueta(); // Etiqueta para salir del ciclo
 
+            codigo3Direcciones.agregarQuintuplo("goto", inicioEtiqueta, "", "");
             // Etiqueta de inicio del ciclo
             codigo3Direcciones.agregarQuintuplo("label", inicioEtiqueta, "", "");
 
@@ -572,8 +686,9 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
             String condicionTemporal = processExpression(ctx.expression());
 
             // Saltar a la salida si la condición es falsa
-            codigo3Direcciones.agregarQuintuplo("ifFalse", condicionTemporal, "", salidaEtiqueta);
+            codigo3Direcciones.agregarQuintuplo("ifFalse", condicionTemporal, trueEtiqueta, salidaEtiqueta);
 
+            codigo3Direcciones.agregarQuintuplo("label", trueEtiqueta, "", "");
             // Procesar el bloque de instrucciones del ciclo
             visit(ctx.statement());
 
@@ -610,7 +725,10 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
 
                 // Generar etiquetas
                 String inicioCiclo = temporal.tacFunciones.nuevaEtiqueta();
+                String trueCiclo = temporal.tacFunciones.nuevaEtiqueta();
                 String finCiclo = temporal.tacFunciones.nuevaEtiqueta();
+
+                temporal.tacFunciones.agregarQuintuplo("goto", inicioCiclo, "", "");
 
                 // Etiqueta de inicio del ciclo
                 temporal.tacFunciones.agregarQuintuplo("label", inicioCiclo, "");
@@ -619,10 +737,30 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
                 String condicion;
                 if (ctx.forList().TO() != null) {
                     // Ciclo ascendente: id <= valorFinal
+                    if(tablaSimbolos.getSimbolo(id, currentScope) != null){
+                        String temporalId = temporal.tacFunciones.nuevoTemporal();
+                        temporal.tacFunciones.agregarQuintuplo("load", id, temporalId);
+                        id = temporalId;
+                    }
+                    if(tablaSimbolos.getSimbolo(valorFinal, currentScope) != null){
+                        String temporalValorFinal = temporal.tacFunciones.nuevoTemporal();
+                        temporal.tacFunciones.agregarQuintuplo("load", valorFinal, temporalValorFinal);
+                        valorFinal = temporalValorFinal;
+                    }
                     condicion = temporal.tacFunciones.nuevoTemporal();
                     temporal.tacFunciones.agregarQuintuplo("<=", id, valorFinal, condicion);
                 } else if (ctx.forList().DOWNTO() != null) {
                     // Ciclo descendente: id >= valorFinal
+                    if(tablaSimbolos.getSimbolo(id, currentScope) != null){
+                        String temporalId = temporal.tacFunciones.nuevoTemporal();
+                        temporal.tacFunciones.agregarQuintuplo("load", id, temporalId);
+                        id = temporalId;
+                    }
+                    if(tablaSimbolos.getSimbolo(valorFinal, currentScope) != null){
+                        String temporalValorFinal = temporal.tacFunciones.nuevoTemporal();
+                        temporal.tacFunciones.agregarQuintuplo("load", valorFinal, temporalValorFinal);
+                        valorFinal = temporalValorFinal;
+                    }
                     condicion = temporal.tacFunciones.nuevoTemporal();
                     temporal.tacFunciones.agregarQuintuplo(">=", id, valorFinal, condicion);
                 } else {
@@ -630,7 +768,9 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
                 }
 
                 // Salto al fin del ciclo si la condición es falsa
-                temporal.tacFunciones.agregarQuintuplo("ifFalse", condicion, finCiclo);
+                temporal.tacFunciones.agregarQuintuplo("ifFalse", condicion, trueCiclo, finCiclo);
+
+                temporal.tacFunciones.agregarQuintuplo("label", trueCiclo, "");
 
                 // Procesar el cuerpo del ciclo
                 visit(ctx.statement());
@@ -654,6 +794,7 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
             }
         }else {
             // 1. Validar el identificador en la tabla de símbolos
+            String idRetornar = ctx.identifier().getText();
             String id = ctx.identifier().getText();
             Simbolo simbolo = tablaSimbolos.getSimbolo(id, currentScope);
             if (simbolo == null) {
@@ -672,19 +813,42 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
 
             // Generar etiquetas
             String inicioCiclo = codigo3Direcciones.nuevaEtiqueta();
+            String trueCiclo = codigo3Direcciones.nuevaEtiqueta();
             String finCiclo = codigo3Direcciones.nuevaEtiqueta();
 
             // Etiqueta de inicio del ciclo
+            codigo3Direcciones.agregarQuintuplo("goto", inicioCiclo, "", "");
+
             codigo3Direcciones.agregarQuintuplo("label", inicioCiclo, "");
 
             // Evaluar condición del ciclo
             String condicion;
             if (ctx.forList().TO() != null) {
                 // Ciclo ascendente: id <= valorFinal
+                if(tablaSimbolos.getSimbolo(id, currentScope) != null){
+                    String temporalId = codigo3Direcciones.nuevoTemporal();
+                    codigo3Direcciones.agregarQuintuplo("load", id, temporalId);
+                    id = temporalId;
+                }
+                if(tablaSimbolos.getSimbolo(valorFinal, currentScope) != null){
+                    String temporalValorFinal = codigo3Direcciones.nuevoTemporal();
+                    codigo3Direcciones.agregarQuintuplo("load", valorFinal, temporalValorFinal);
+                    valorFinal = temporalValorFinal;
+                }
                 condicion = codigo3Direcciones.nuevoTemporal();
                 codigo3Direcciones.agregarQuintuplo("<=", id, valorFinal, condicion);
             } else if (ctx.forList().DOWNTO() != null) {
                 // Ciclo descendente: id >= valorFinal
+                if(tablaSimbolos.getSimbolo(id, currentScope) != null){
+                    String temporalId = codigo3Direcciones.nuevoTemporal();
+                    codigo3Direcciones.agregarQuintuplo("load", id, temporalId);
+                    id = temporalId;
+                }
+                if(tablaSimbolos.getSimbolo(valorFinal, currentScope) != null){
+                    String temporalValorFinal = codigo3Direcciones.nuevoTemporal();
+                    codigo3Direcciones.agregarQuintuplo("load", valorFinal, temporalValorFinal);
+                    valorFinal = temporalValorFinal;
+                }
                 condicion = codigo3Direcciones.nuevoTemporal();
                 codigo3Direcciones.agregarQuintuplo(">=", id, valorFinal, condicion);
             } else {
@@ -692,8 +856,9 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
             }
 
             // Salto al fin del ciclo si la condición es falsa
-            codigo3Direcciones.agregarQuintuplo("ifFalse", condicion, finCiclo);
+            codigo3Direcciones.agregarQuintuplo("ifFalse", condicion, trueCiclo,finCiclo);
 
+            codigo3Direcciones.agregarQuintuplo("label", trueCiclo, "");
             // Procesar el cuerpo del ciclo
             visit(ctx.statement());
 
@@ -706,7 +871,7 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
                 // Decremento: id = id - 1
                 codigo3Direcciones.agregarQuintuplo("-", id, "1", incremento);
             }
-            codigo3Direcciones.agregarQuintuplo(":=", incremento, id);
+            codigo3Direcciones.agregarQuintuplo(":=", incremento, idRetornar);
 
             // Salto al inicio del ciclo
             codigo3Direcciones.agregarQuintuplo("goto", inicioCiclo, "");
@@ -717,7 +882,6 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
 
         return null;
     }
-
     //Condicional
     @Override
     public Void visitIfStatement(MiniPascalParser.IfStatementContext ctx) {
@@ -733,12 +897,14 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
                 }*/
 
                 // 2. Crear etiquetas para manejar el flujo
+                String etiquetaTrue = temporal.tacFunciones.nuevaEtiqueta();
                 String etiquetaFalso = temporal.tacFunciones.nuevaEtiqueta();
                 String etiquetaFin = temporal.tacFunciones.nuevaEtiqueta();
 
                 // Generar quíntuplo para la condición
-                temporal.tacFunciones.agregarQuintuplo("ifFalse", condicion, etiquetaFalso);
+                temporal.tacFunciones.agregarQuintuplo("ifFalse", condicion, etiquetaTrue,etiquetaFalso);
 
+                temporal.tacFunciones.agregarQuintuplo("label", etiquetaTrue, "");
                 // 3. Procesar el bloque THEN
                 visit(ctx.statement(0));
 
@@ -754,7 +920,8 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
                 if (ctx.ELSE() != null) {
                     visit(ctx.statement(1));
                 }
-
+                // Despues de procesar el else, salta al final del if
+                temporal.tacFunciones.agregarQuintuplo("goto", etiquetaFin, "");
                 // Etiqueta para el fin del IF
                 temporal.tacFunciones.agregarQuintuplo("label", etiquetaFin, "");
             }
@@ -769,12 +936,14 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
         }*/
 
             // 2. Crear etiquetas para manejar el flujo
+            String etiquetaTrue = codigo3Direcciones.nuevaEtiqueta();
             String etiquetaFalso = codigo3Direcciones.nuevaEtiqueta();
             String etiquetaFin = codigo3Direcciones.nuevaEtiqueta();
 
             // Generar quíntuplo para la condición
-            codigo3Direcciones.agregarQuintuplo("ifFalse", condicion, etiquetaFalso);
+            codigo3Direcciones.agregarQuintuplo("ifFalse", condicion, etiquetaTrue,etiquetaFalso);
 
+            codigo3Direcciones.agregarQuintuplo("label", etiquetaTrue, "");
             // 3. Procesar el bloque THEN
             visit(ctx.statement(0));
 
@@ -790,6 +959,8 @@ public class MiniPascalASTVisitorTAC extends MiniPascalBaseVisitor<Object>{
             if (ctx.ELSE() != null) {
                 visit(ctx.statement(1));
             }
+            // Despues de procesar el else, salta al final del if
+            codigo3Direcciones.agregarQuintuplo("goto", etiquetaFin, "");
 
             // Etiqueta para el fin del IF
             codigo3Direcciones.agregarQuintuplo("label", etiquetaFin, "");
