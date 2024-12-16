@@ -4,6 +4,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Random;
+
 
 public class GenerarCodigoLLVM {
     Codigo3Direcciones codigo3Direcciones;
@@ -92,6 +94,7 @@ public class GenerarCodigoLLVM {
     }
 
     public String convertirALLVM(Quintuplo q) {
+        Random r = new Random();
         StringBuilder sb = new StringBuilder();
 
         String operador = q.getOperador();
@@ -110,7 +113,7 @@ public class GenerarCodigoLLVM {
                     } else if(simbolo.getType().equalsIgnoreCase("character")){
                         sb.append("  store i8 %").append(arg1).append(", i8* @").append(resultado).append("\n");
                     } else if(simbolo.getType().equalsIgnoreCase("boolean")){
-                        sb.append("  store i1 %").append(arg1).append(", i1* @").append(resultado).append("\n");
+                        sb.append("  store i1 %").append(arg1.toLowerCase()).append(", i1* @").append(resultado).append("\n");
                     }
                 }
                 else{
@@ -121,7 +124,7 @@ public class GenerarCodigoLLVM {
                     } else if(simbolo.getType().equalsIgnoreCase("character")){
                         sb.append("  store i8 ").append(arg1).append(", i8* @").append(resultado).append("\n");
                     } else if(simbolo.getType().equalsIgnoreCase("boolean")){
-                        sb.append("  store i1 ").append(arg1).append(", i1* @").append(resultado).append("\n");
+                        sb.append("  store i1 ").append(arg1.toLowerCase()).append(", i1* @").append(resultado).append("\n");
                     }
                 }
 
@@ -624,9 +627,10 @@ public class GenerarCodigoLLVM {
         }
         if (operador.equals("write")) {
             // Si 'arg2' no es nulo, significa que hay algo que imprimir además de la cadena
-            if (arg2 != null) {
+            String numeroArg2 = arg2.substring(1);
+            if (arg2 != "_") {
                 // Definimos la cadena temporal con % en vez de @
-                String numeroArg2 = arg2.substring(1); // Eliminar '%' de 'arg2' para crear un nombre dinámico
+                 // Eliminar '%' de 'arg2' para crear un nombre dinámico
                 sb.append("  %respuesta").append(numeroArg2).append(" = alloca [")
                         .append(arg1.length() + 1)
                         .append(" x i8], align 1\n");
@@ -663,8 +667,9 @@ public class GenerarCodigoLLVM {
                 }
             } else {
                 // Si 'arg2' es nulo, solo imprimimos la cadena 'arg1'
-                String numeroArg2 = "resultado"; // Usamos "resultado" como nombre cuando 'arg2' es nulo
-                sb.append("  %").append(numeroArg2).append(" = alloca [")
+                String numeroResultadoArg2 = "resultado" + numeroArg2 + Integer.toString(r.nextInt(1,250)); // Usamos "resultado" como nombre cuando 'arg2' es nulo
+                System.out.println(numeroResultadoArg2);
+                sb.append("  %").append(numeroResultadoArg2).append(" = alloca [")
                         .append(arg1.length() + 1)
                         .append(" x i8], align 1\n");
 
@@ -674,26 +679,27 @@ public class GenerarCodigoLLVM {
                         .append(arg1)
                         .append("\\00\", [")
                         .append(arg1.length() + 1)
-                        .append(" x i8]* %").append(numeroArg2).append(", align 1\n");
+                        .append(" x i8]* %").append(numeroResultadoArg2).append(", align 1\n");
 
                 // Usamos getelementptr para obtener el puntero al primer carácter de la cadena
-                sb.append("  %").append(numeroArg2).append("_ptr = getelementptr inbounds [")
+                sb.append("  %").append(numeroResultadoArg2).append("_ptr = getelementptr inbounds [")
                         .append(arg1.length() + 1)
                         .append(" x i8], [")
                         .append(arg1.length() + 1)
-                        .append(" x i8]* %").append(numeroArg2).append(", i32 0, i32 0\n");
+                        .append(" x i8]* %").append(numeroResultadoArg2).append(", i32 0, i32 0\n");
 
                 // Imprimimos la cadena 'arg1' usando el puntero obtenido
-                sb.append("  call void @write_string(i8* %").append(numeroArg2).append("_ptr)\n");
+                sb.append("  call void @write_string(i8* %").append(numeroResultadoArg2).append("_ptr)\n");
             }
         }
 
 
         if(operador.equals("writeln")) {
             // Si 'arg2' no es nulo, significa que hay algo que imprimir además de la cadena
-            if (arg2 != null) {
+            String numeroArg2 = arg2.substring(1);
+            if (arg2 != "_") {
                 // Definimos la cadena temporal con % en vez de @
-                String numeroArg2 = arg2.substring(1); // Eliminar '%' de 'arg2' para crear un nombre dinámico
+                 // Eliminar '%' de 'arg2' para crear un nombre dinámico
                 sb.append("  %respuesta").append(numeroArg2).append(" = alloca [")
                         .append(arg1.length() + 1)
                         .append(" x i8], align 1\n");
@@ -730,8 +736,9 @@ public class GenerarCodigoLLVM {
                 }
             } else {
                 // Si 'arg2' es nulo, solo imprimimos la cadena 'arg1'
-                String numeroArg2 = "resultado"; // Usamos "resultado" como nombre cuando 'arg2' es nulo
-                sb.append("  %").append(numeroArg2).append(" = alloca [")
+                String numeroResultadoArg2 = "resultado" + r.nextInt(1,250); // Usamos "resultado" como nombre cuando 'arg2' es nulo
+                System.out.println(numeroResultadoArg2);
+                sb.append("  %").append(numeroResultadoArg2).append(" = alloca [")
                         .append(arg1.length() + 1)
                         .append(" x i8], align 1\n");
 
@@ -741,21 +748,21 @@ public class GenerarCodigoLLVM {
                         .append(arg1)
                         .append("\\00\", [")
                         .append(arg1.length() + 1)
-                        .append(" x i8]* %").append(numeroArg2).append(", align 1\n");
+                        .append(" x i8]* %").append(numeroResultadoArg2).append(", align 1\n");
 
                 // Usamos getelementptr para obtener el puntero al primer carácter de la cadena
-                sb.append("  %").append(numeroArg2).append("_ptr = getelementptr inbounds [")
+                sb.append("  %").append(numeroResultadoArg2).append("_ptr = getelementptr inbounds [")
                         .append(arg1.length() + 1)
                         .append(" x i8], [")
                         .append(arg1.length() + 1)
-                        .append(" x i8]* %").append(numeroArg2).append(", i32 0, i32 0\n");
+                        .append(" x i8]* %").append(numeroResultadoArg2).append(", i32 0, i32 0\n");
 
                 // Imprimimos la cadena 'arg1' usando el puntero obtenido
-                sb.append("  call void @write_string(i8* %").append(numeroArg2).append("_ptr)\n");
+                sb.append("  call void @write_string(i8* %").append(numeroResultadoArg2).append("_ptr)\n");
             }
 
             // Agregar salto de línea al final de la impresión
-            sb.append("  %").append(resultado).append(" = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.newlineFormat, i32 0, i32 0))\n");
+            sb.append("  %").append(resultado).append(r.nextInt(1,250)).append(numeroArg2).append(" = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.newlineFormat, i32 0, i32 0))\n");
         }
         if (operador.equals("read")) {
             if (tablaSimbolos.findSimbolo(resultado)) {

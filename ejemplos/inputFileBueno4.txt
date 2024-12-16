@@ -31,8 +31,9 @@ begin
   { Llenamos el arreglo bidimensional }
   For i := x Downto 1 Do
   Begin
+    writeln('Estoy en ', i);
     For j := y Downto 1 Do
-      arreglo_bidi[i,j] := (cont + (x - y) + 5) mod 15;
+      writeln('Estoy en ', j);
   End;
 
   { Reiniciamos el contador }
@@ -40,9 +41,13 @@ begin
 
   { Llenamos el arreglo unidimensional }
   For i := 1 To x Do
+    Begin
+        writeln('Estoy en ', i);
+    End;
+
     For j := 1 To y Do
     Begin
-      arreglo[cont] := arreglo_bidi[i,j];
+      writeln('Estoy en ', j);
       cont := (cont + 1);
     End;
 
@@ -52,8 +57,7 @@ begin
   { Imprimimos el arreglo unidimensional }
   While (cont <> lenght + 1) Do
   Begin
-    write('arreglo[%d] = ', cont);
-    writeln('%d', arreglo[cont]);
+    writeln('Entro aqui');
     cont := cont + 1; { Faltaba incrementar el contador }
   End;
 

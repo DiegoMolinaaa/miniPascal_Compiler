@@ -103,24 +103,24 @@ public class TablaSimbolos {
                     if(simboloArreglo.getDimensions() == 1){
                         sb.append("[").append(sizes[0]).append(" x ");
                         if(simboloArreglo.getType().equalsIgnoreCase("integer")){
-                            sb.append("i32 0");
+                            sb.append("i32");
                         } else if(simboloArreglo.getType().equalsIgnoreCase("character")){
-                            sb.append("i8 0");
+                            sb.append("i8");
                         } else if(simboloArreglo.getType().equalsIgnoreCase("boolean")){
-                            sb.append("i1 0");
+                            sb.append("i1");
                         }
-                        sb.append("], align 16\n");
+                        sb.append("] zeroinitializer, align 16\n");
                     }
                     else if(simboloArreglo.getDimensions() == 2){
                         sb.append("[").append(sizes[0]).append(" x [").append(sizes[1]).append(" x ");
                         if(simboloArreglo.getType().equalsIgnoreCase("integer")){
-                            sb.append("i32 0");
+                            sb.append("i32");
                         } else if(simboloArreglo.getType().equalsIgnoreCase("character")){
-                            sb.append("i8 0");
+                            sb.append("i8");
                         } else if(simboloArreglo.getType().equalsIgnoreCase("boolean")){
-                            sb.append("i1 0");
+                            sb.append("i1");
                         }
-                        sb.append("]], align 16\n");
+                        sb.append("]] zeroinitializer, align 16\n");
                     }
                 }
             }
@@ -166,6 +166,9 @@ public class TablaSimbolos {
                         System.out.println(q.toString());
                         sb.append(convertirALLVM(q)).append("\n");
                     }
+                    if(this.getSimbolo(currentScope, currentScope).getType().equalsIgnoreCase("procedure")){
+                        sb.append("  ret void\n");
+                    }
                     sb.append("}\n");
                 }
                 currentScope = previousScope;
@@ -178,7 +181,7 @@ public class TablaSimbolos {
 
     public String convertirALLVM(Quintuplo q) {
         StringBuilder sb = new StringBuilder();
-
+        Random r = new Random();
         SimboloFuncion simboloFuncion = (SimboloFuncion) this.getSimbolo(currentScope, currentScope);
         ArrayList<Simbolo> SimbolosFuncion = simboloFuncion.getParameters();
         TablaSimbolos tablaSimbolosFuncion = new TablaSimbolos(SimbolosFuncion);
@@ -201,6 +204,20 @@ public class TablaSimbolos {
                         sb.append("  ret i8 %").append(arg1).append("\n");
                     } else if(simbolo.getType().equalsIgnoreCase("boolean")){
                         sb.append("  ret i1 %").append(arg1).append("\n");
+                    }
+                    else if(simbolo.getType().equalsIgnoreCase("procedure")){
+                        sb.append(" ret void\n");
+                    }
+                }
+                else{
+                    if(simbolo.getType().equalsIgnoreCase("integer")){
+                        sb.append("  ret i32 ").append(arg1).append("\n");
+                    } else if(simbolo.getType().equalsIgnoreCase("string")){
+                        sb.append("  ret i8* ").append(arg1).append("\n");
+                    } else if(simbolo.getType().equalsIgnoreCase("character")){
+                        sb.append("  ret i8 ").append(arg1).append("\n");
+                    } else if(simbolo.getType().equalsIgnoreCase("boolean")){
+                        sb.append("  ret i1 ").append(arg1.toLowerCase()).append("\n");
                     }
                     else if(simbolo.getType().equalsIgnoreCase("procedure")){
                         sb.append(" ret void\n");
@@ -683,7 +700,7 @@ public class TablaSimbolos {
 //        }
         if (operador.equals("write")) {
             // Si 'arg2' no es nulo, significa que hay algo que imprimir además de la cadena
-            if (arg2 != null) {
+            if (arg2 != "_") {
                 // Definimos la cadena temporal con % en vez de @
                 String numeroArg2 = arg2.substring(1); // Eliminar '%' de 'arg2' para crear un nombre dinámico
                 sb.append("  %respuesta").append(numeroArg2).append(" = alloca [")
@@ -722,7 +739,7 @@ public class TablaSimbolos {
                 }
             } else {
                 // Si 'arg2' es nulo, solo imprimimos la cadena 'arg1'
-                String numeroArg2 = "resultado"; // Usamos "resultado" como nombre cuando 'arg2' es nulo
+                String numeroArg2 = "resultado" + r.nextInt(1,250); // Usamos "resultado" como nombre cuando 'arg2' es nulo
                 sb.append("  %").append(numeroArg2).append(" = alloca [")
                         .append(arg1.length() + 1)
                         .append(" x i8], align 1\n");
@@ -750,7 +767,7 @@ public class TablaSimbolos {
 
         if(operador.equals("writeln")) {
             // Si 'arg2' no es nulo, significa que hay algo que imprimir además de la cadena
-            if (arg2 != null) {
+            if (arg2 != "_") {
                 // Definimos la cadena temporal con % en vez de @
                 String numeroArg2 = arg2.substring(1); // Eliminar '%' de 'arg2' para crear un nombre dinámico
                 sb.append("  %respuesta").append(numeroArg2).append(" = alloca [")
@@ -789,7 +806,7 @@ public class TablaSimbolos {
                 }
             } else {
                 // Si 'arg2' es nulo, solo imprimimos la cadena 'arg1'
-                String numeroArg2 = "resultado"; // Usamos "resultado" como nombre cuando 'arg2' es nulo
+                String numeroArg2 = "resultado" + + r.nextInt(1,250); // Usamos "resultado" como nombre cuando 'arg2' es nulo
                 sb.append("  %").append(numeroArg2).append(" = alloca [")
                         .append(arg1.length() + 1)
                         .append(" x i8], align 1\n");
@@ -814,7 +831,7 @@ public class TablaSimbolos {
             }
 
             // Agregar salto de línea al final de la impresión
-            sb.append("  %").append(resultado).append(" = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.newlineFormat, i32 0, i32 0))\n");
+            sb.append("  %").append(resultado).append(r.nextInt(1,250)).append(" = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.newlineFormat, i32 0, i32 0))\n");
         }
         if (operador.equals("read")) {
             if (this.findSimbolo(resultado)) {
