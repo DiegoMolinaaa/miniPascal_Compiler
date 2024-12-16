@@ -1,7 +1,7 @@
 program ciclos;
 
 {declaramos las constantes}
-conts {error}
+const {error}
   WELCOME_MESSAGE = 'Bienvenido a MiniPascal!';
   CHAR_EXAMPLE = 'A';
 

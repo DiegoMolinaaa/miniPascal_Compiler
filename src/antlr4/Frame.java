@@ -343,41 +343,11 @@ public class Frame extends javax.swing.JFrame {
 
     private void menuCompilarMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_menuCompilarMousePressed
         // Proceso de compilacion
-        if (txtCodigo.getText().isEmpty()) {
-            archivo = new File("./ejemplos/inputFileBueno1.txt");
-            txtSalida.setText("");
-            txtSalidaSem.setText("");
-            BufferedReader br = null;
-            try {
-                br = new BufferedReader(new FileReader(archivo.getPath()));
-                String st;
-                int linea = 1;
-                txtNumLinea.setText("1");
-                txtCodigo.setText("");
-                while ((st = br.readLine()) != null) {
-                    txtNumLinea.append('\n' + Integer.toString(++linea));
-                    txtCodigo.append(st + '\n');
-                }
-
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(Frame.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(Frame.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
-                try {
-                    br.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(Frame.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-
-
         TablaSimbolos tablaSimbolos = new TablaSimbolos();
         Codigo3Direcciones codigo3Direcciones = new Codigo3Direcciones();
         txtSalida.setText("");
         txtSalidaSem.setText("");
-        if (txtCodigo.getText().length() > 0 && !txtCodigo.getText().isBlank() && !txtCodigo.getText().isEmpty()) {
+        if (!txtCodigo.getText().isBlank() && !txtCodigo.getText().isEmpty()) {
             String salida = "", salidaTablaSim = "", salidaSem = "";
             try {
                 CharStream input = CharStreams.fromString(txtCodigo.getText());
@@ -426,7 +396,7 @@ public class Frame extends javax.swing.JFrame {
                     tablaSimbolos.printTablaSimbolos();
 
                     //Analisis Semantico -- Pamela
-                    MiniPascalASTVisitorSemantico visitorSemantico = new MiniPascalASTVisitorSemantico(tablaSimbolos, erroresEncontrados);
+                    MiniPascalASTVisitorSemantico visitorSemantico = new MiniPascalASTVisitorSemantico(tablaSimbolos);
                     salidaSem += visitorSemantico.generarSalida(tree);
                     tablaSimbolos.printTablaSimbolos();
 
