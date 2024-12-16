@@ -7,18 +7,16 @@ import java.util.ArrayList;
 
 public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
     private final TablaSimbolos tablaSimbolos;
-    private final ArrayList<ErrorCompilacion> errores;
     private String currentScope = "global";
     private Simbolo simboloIzquierdo = null;
     private Boolean opAritmetica = false;
     private String opAditivo = "";
 
-    public MiniPascalASTVisitorSemantico(TablaSimbolos tablaSimbolos, ArrayList<ErrorCompilacion> errores) {
+    public MiniPascalASTVisitorSemantico(TablaSimbolos tablaSimbolos) {
         this.tablaSimbolos = tablaSimbolos;
-        this.errores = errores;
     }
 
-    String salida = "\n\nErrores Visitor Semantico";
+    String salida = "\nVisitor Semantico";
     public String generarSalida(ParseTree tree) {
         visit(tree);
         if (salida == "\nErrores Visitor Semantico\n") {
@@ -30,7 +28,6 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
     @Override
     public Void visitAssignmentStatement(MiniPascalParser.AssignmentStatementContext ctx) {
         String variable = ctx.variable().getText();
-        salida += ("\n\nAsignación: '" + ctx.variable().getText() + "' = " + ctx.expression().getText());
         // Extraer solo el nombre de la variable array
         if (variable.contains("[")) {
             int indiceLlave = variable.indexOf('[', 0);
@@ -76,128 +73,76 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
         visit(ctx.signedFactor());
         if (ctx.multiplicativeoperator() != null) {
             opAritmetica = false;
-//            salida += '\n' + ("\nOperador Multiplicativo: " + ctx.multiplicativeoperator().getText());
-            visit(ctx.term()); // Visitar el nodo del término
+            visit(ctx.term());
         }
         return null;
     }
 
     public void validacionTipos(String tipoAsignado) {
         if (opAritmetica) {
-            salida += "\nError: Los operandos de expresiones aritméticas deben ser de tipo Integer";
+            salida += (simboloIzquierdo instanceof SimboloFuncion)
+                    ? "\nError: Los operandos de expresiones aritméticas deben ser de tipo Integer.\nValor de retorno de la función '" + simboloIzquierdo.getName() + "'."
+                    : "\nError: Los operandos de expresiones aritméticas deben ser de tipo Integer.\nAsignación a la variable '" + simboloIzquierdo.getName() + "'.";
         }
         else {
-            if (simboloIzquierdo instanceof SimboloFuncion){
-                salida += "\nError: En una función se debe retornar un valor del tipo correcto.\nTipo a retornar: "+simboloIzquierdo.getType() + "\nTipo retornado: " + tipoAsignado;
-            }
-            else {
-                salida += "\nError: En una asignación ambos lados deben tener el mismo tipo.\nLado izquierdo: "+simboloIzquierdo.getType() + "\nLado derecho: " + tipoAsignado;
-            }
+            salida += (simboloIzquierdo instanceof SimboloFuncion)
+                ? "\nError: La funcion " + simboloIzquierdo.getName() + " retorna un valor de tipo incorrecto.\nTipo a retornar: " + simboloIzquierdo.getType() + "\nTipo retornado: " + tipoAsignado
+                : "\nError: En una asignación ambos lados deben tener el mismo tipo.\nLado izquierdo: " + simboloIzquierdo.getType() + "\nLado derecho: " + tipoAsignado;
         }
     }
 
     @Override
     public Void visitFactor(MiniPascalParser.FactorContext ctx) {
+        // CASO EN QUE ES UNA VARIABLE
         if (ctx.variable() != null) {
-            // CASO EN QUE ES UNA VARIABLE
             String variable = ctx.variable().getText();
-                // simboloIzqueirdo instanceof function entonces buscar la variable en el SCOPE DEL FUCNTIONnnnnnnn
+            // Caso en que se asignara el valor a otra variable
             if (tablaSimbolos.findSimbolo(variable)) {
-                    Simbolo sim = tablaSimbolos.getSimbolo(variable, currentScope);
-                    if (sim != null) {
-                        if (!(simboloIzquierdo instanceof SimboloArreglo)) {
-                            if (sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
-                                // Realizar la suma/resta de los valores
-                                if (opAritmetica) {
-
-                                    Object valorActual = simboloIzquierdo.getValue() == null ? 0 : simboloIzquierdo.getValue();
-                                    int valorVariable = 0;
-
-                                    if (sim.getValue() instanceof Integer) {
-                                        valorVariable = (Integer)sim.getValue();
-                                    }
-                                    else if (sim.getValue() instanceof String) {
-                                        valorVariable = Integer.parseInt((String)sim.getValue());
-                                    }
-                                    if (valorActual instanceof String) {
-                                        valorActual = Integer.parseInt((String)simboloIzquierdo.getValue());
-                                    }
-
-                                    simboloIzquierdo.setValue((Integer)valorActual + (opAditivo.equals("+") ? +valorVariable : -valorVariable));
-                                }
-                                // Realizar la asignacion del valor solito ej. x = y
-                                else {
-                                    simboloIzquierdo.setValue(sim.getValue());
-                                }
-                            }
-                            else {
-                                validacionTipos(sim.getType());
-                            }
-                            visit(ctx.variable());
-                        }
+                Simbolo sim = tablaSimbolos.getSimbolo(variable, currentScope);
+                if (sim != null) {
+                    if (!(simboloIzquierdo instanceof SimboloArreglo)) {
+                        // Validar que el tipo sea compatible al tipo esperado
+                        if (!sim.getType().equalsIgnoreCase(simboloIzquierdo.getType()))
+                            validacionTipos(sim.getType());
                     }
-
-
+                }
             }
+            // Caso en que es el valor de retorno de una funcion
             else if (simboloIzquierdo instanceof SimboloFuncion) {
-                System.out.println("HOLAAA ");
                 for (Simbolo sim : ((SimboloFuncion) simboloIzquierdo).parameters) {
                     if (sim.getName().equalsIgnoreCase(variable)) {
-                        System.out.println("me encontre en parametros " + variable + "=" + sim.getValue());
-                        if (sim != null) {
-                            if (sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
-                                // Realizar la suma/resta de los valores
-                                if (opAritmetica) {
-                                    Object valorActual = simboloIzquierdo.getValue() == null ? 0 : simboloIzquierdo.getValue();
-                                    int valorVariable = 0;
-
-                                    if (sim.getValue() instanceof Integer) {
-                                        valorVariable = (Integer)sim.getValue();
-                                    }
-                                    else if (sim.getValue() instanceof String) {
-                                        valorVariable = Integer.parseInt((String)sim.getValue());
-                                    }
-                                    if (valorActual instanceof String) {
-                                        valorActual = Integer.parseInt((String)simboloIzquierdo.getValue());
-                                    }
-                                    simboloIzquierdo.setValue((Integer)valorActual + (opAditivo.equals("+") ? +valorVariable : -valorVariable));
-                                }
-                                // Realizar la asignacion del valor solito ej. x = y
-                                else {
-                                    simboloIzquierdo.setValue(sim.getValue());
-                                }
-                            }
-                            else {
-                                validacionTipos(sim.getType());
-                            }
+                        if (!sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
+                            // Validar que el tipo sea compatible al tipo esperado
+                            validacionTipos(sim.getType());
                         }
                         break;
                     }
                 }
             }
-             // Visitar el nodo de la variable
-        } else if (ctx.expression() != null) {
-            // CASO EN QUE UN TERMINO ES OTRA EXPRESION -> (a + b)
+            // Visitar el nodo de la variable
+            visit(ctx.variable());
+        }
+        // CASO EN QUE ES UNA EXPRESION -> (a + b)
+        else if (ctx.expression() != null) {
             visit(ctx.expression());
-        } else if (ctx.functionDesignator() != null) {
-            // CASO DE LLAMADO A FUNCIONES
+        }
+        // CASO DE LLAMADO A FUNCIONES
+        else if (ctx.functionDesignator() != null) {
             String nomFuncion = ctx.functionDesignator().identifier().getText();
             if (tablaSimbolos.findSimbolo(nomFuncion)) {
                 Simbolo simFuncion = tablaSimbolos.getSimbolo(nomFuncion, currentScope);
                 if (simFuncion != null) {
+                    // Validar si los tipos son compatibles
                     if(!simboloIzquierdo.getType().equalsIgnoreCase(simFuncion.getType())) {
                         salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "
                                 +simboloIzquierdo.getType() + "\nTipo retornado en el llamado: " + simFuncion.getType();
                     }
-                    else {
-                        visit(ctx.functionDesignator());
-                        simboloIzquierdo.setValue(simFuncion.getValue());
-                    }
                 }
             }
             visit(ctx.functionDesignator());
-        } else if (ctx.unsignedConstant() != null) {
-            // CASO DE VALOR CONSTANTE (ej. 10, 'Hola'...)
+        }
+        // CASO DE VALOR CONSTANTE (ej. 10, 'Hola'...)
+        else if (ctx.unsignedConstant() != null) {
             String tipoConst = "Integer",
                 constante = ctx.unsignedConstant().getText();
             if (constante.contains("'") && constante.length() >= 3) {
@@ -208,45 +153,25 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                 tipoConst = "Boolean";
             }
             // Validar el tipo de la constante con el tipo a asignar
-            if (simboloIzquierdo.getType().equalsIgnoreCase(tipoConst)
-                    && !(simboloIzquierdo instanceof SimboloArreglo)) {
-                if (simboloIzquierdo.getType().equalsIgnoreCase("Integer")) {
-                    // Caso en que sea un Integer
-                    int numero = Integer.parseInt(constante);
-                    if (opAritmetica) {
-                        int valorActual = simboloIzquierdo.getValue() == null ? 0 : (Integer)simboloIzquierdo.getValue();
-                        // Hacer la suma/resta con el valor ya almacenado
-                        simboloIzquierdo.setValue(valorActual + (opAditivo.equals("+") ? +numero : -numero));
-                    }
-                    else {
-                        // Cuando no es operacion aritmetica, solo se asigna el valor
-                        simboloIzquierdo.setValue(numero);
-                    }
-                }
-                else {
-                    // Casos en que es un String, Char o Boolean
-                    simboloIzquierdo.setValue(constante);
-                }
-            }
-            else {
+            if (!simboloIzquierdo.getType().equalsIgnoreCase(tipoConst)) {
                 validacionTipos(tipoConst);
             }
             visit(ctx.unsignedConstant());
-        } else if (ctx.NOT() != null) {
-            if (opAritmetica) {
-                salida += "\nError: Los operandos de expresiones aritméticas deben ser de tipo Integer";
-            }
-            else {
-                simboloIzquierdo.setValue(ctx.NOT().getText() + " NOT");
+        }
+        // CASO DE NEGACION
+        else if (ctx.NOT() != null) {
+            if (!simboloIzquierdo.getType().equalsIgnoreCase("Boolean")) {
+                salida += "\nError: El factor " + ctx.factor().getText() + " no es de tipo Boolean";
             }
             visit(ctx.factor());
         }
+        // CASO DE VALOR BOOLEANO
         else if (ctx.unsignedConstant().bool_() != null) {
             if (opAritmetica) {
                 salida += "\nLos operandos de expresiones aritméticas deben ser de tipo Integer";
             }
-            else {
-                simboloIzquierdo.setValue(ctx.unsignedConstant().bool_().getText() + " bool");
+            else if (!simboloIzquierdo.getType().equalsIgnoreCase("Boolean")) {
+                validacionTipos("Boolean");
             }
         }
         return null;
@@ -255,7 +180,7 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
     @Override
     public Void visitFunctionDesignator(MiniPascalParser.FunctionDesignatorContext ctx) {
         String nombreFuncion = ctx.identifier().getText();
-        salida += "\n\nLlamado a la función " + nombreFuncion; // no se porque ya no sale esto
+
         String previousScope = currentScope;
         currentScope = nombreFuncion;
         tablaSimbolos.enterScope(currentScope);
@@ -269,22 +194,31 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                         for (int i = 0; i < ctx.parameterList().actualParameter().size(); i++) {
                             String parametro = ctx.parameterList().actualParameter(i).getText();
                             String tipoRequerido = funcion.parameters.get(i).getType();
-
                             if (tablaSimbolos.findSimbolo(parametro)) {
                                 // Es una variable
                                 Simbolo simParametro = tablaSimbolos.getSimbolo(parametro, previousScope);
                                 String tipoRecibido = simParametro.getType();
                                 if (!tipoRequerido.equalsIgnoreCase(tipoRecibido)) {
+                                    salida += "\n\nLlamado a la función " + nombreFuncion;
                                     salida += "\nError: Tipo de parámetro incompatible.\nTipo esperado: " + tipoRequerido + "\nTipo recibido: " + tipoRecibido + "\n";
-                                    return null;
                                 }
-                                funcion.parameters.get(i).setValue(simParametro.getValue());
-                                funcion.parameters.get(i).setType(simParametro.getType());
-                                funcion.parameters.get(i).setCategory(simParametro.getCategory());
                             }
                             else {
                                 // Es una constante
-                                funcion.parameters.get(i).setValue(parametro);
+                                String tipoConst = "Integer",
+                                constante = funcion.parameters.get(i).getName();
+                                if (constante.contains("'") && constante.length() >= 3) {
+                                    constante = constante.substring(1, constante.indexOf("'", 1));
+                                    tipoConst = constante.length() == 1 ? "Character" : "String";
+                                }
+                                else if (constante.equalsIgnoreCase("true") || constante.equalsIgnoreCase("false")) {
+                                    tipoConst = "Boolean";
+                                }
+                                // Validar el tipo de la constante con el tipo a asignar
+                                if (!simboloIzquierdo.getType().equalsIgnoreCase(tipoConst)) {
+                                    salida += "\n\nLlamado a la función " + nombreFuncion;
+                                    salida += "\nError: Tipo de parámetro incompatible.\nTipo esperado: " + tipoRequerido + "\nTipo recibido: " + tipoConst + "\n";
+                                }
                             }
                         }
                     }
@@ -319,32 +253,26 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
     @Override
     public Void visitForStatement(MiniPascalParser.ForStatementContext ctx) {
         String nomVar = ctx.identifier().getText();
-        if (tablaSimbolos.findSimbolo(nomVar)) {
-            Simbolo variable = tablaSimbolos.getSimbolo(nomVar, currentScope);
-            // Validar que la variable sea tipo int para asignarle el valor inicial
-            if (variable.getType().equalsIgnoreCase("Integer")) {
+        System.out.println("VALOOOOR nomvar " + nomVar);
+        if (simboloIzquierdo.getType().equalsIgnoreCase("Integer")) {
+            String valor = ctx.forList().initialValue().getText();
+            System.out.println("VALOOOOR " + valor);
+            // Es una variable
+            if (tablaSimbolos.findSimbolo(nomVar)) {
+                Simbolo variable = tablaSimbolos.getSimbolo(nomVar, currentScope);
+                // Validar que la variable sea tipo int para asignarle el valor inicial
+                if (!variable.getType().equalsIgnoreCase("Integer")) {
+                    salida += "\nError: El iterador en un ciclo for debe ser de tipo Integer.";
+                }
+            }
+            // Es una constante
+            else if (!valor.matches("\\d+")) {
                 // Validar que sea un numero
-                String valor = ctx.forList().initialValue().getText();
-                if (valor.matches("\\d+")) {
-                    // Asignar valor inicial a la variable
-                    variable.setValue(ctx.forList().initialValue().getText());
-                    visit(ctx.forList().initialValue());
-                    visit(ctx.forList().finalValue());
-                    visit(ctx.statement());
-                }
-                else if (tablaSimbolos.findSimbolo(valor)) {
-                    Simbolo varAsignar = tablaSimbolos.getSimbolo(valor, currentScope);
-                    if (varAsignar.getType().equalsIgnoreCase("Integer")) {
-                        variable.setValue(varAsignar.getValue());
-                    }
-                }
-                else {
-                    salida += "\nError: El iterador en un ciclo for debe iniciar en un número entero.";
-                }
+                salida += "\nError: El iterador en un ciclo for debe iniciar en un número entero.";
             }
-            else {
-                salida += "\nError: En una asignación ambos lados deben tener el mismo tipo.\nLado izquierdo: "+ variable.getType() + "\nLado derecho: Integer";
-            }
+        }
+        else {
+            salida += "\nError: En una asignación ambos lados deben tener el mismo tipo.\nLado izquierdo: "+ simboloIzquierdo.getType() + "\nLado derecho: Integer";
         }
         return null;
     }

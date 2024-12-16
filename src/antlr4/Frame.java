@@ -426,7 +426,7 @@ public class Frame extends javax.swing.JFrame {
                     tablaSimbolos.printTablaSimbolos();
 
                     //Analisis Semantico -- Pamela
-                    MiniPascalASTVisitorSemantico visitorSemantico = new MiniPascalASTVisitorSemantico(tablaSimbolos, erroresEncontrados);
+                    MiniPascalASTVisitorSemantico visitorSemantico = new MiniPascalASTVisitorSemantico(tablaSimbolos);
                     salidaSem += visitorSemantico.generarSalida(tree);
                     tablaSimbolos.printTablaSimbolos();
 
