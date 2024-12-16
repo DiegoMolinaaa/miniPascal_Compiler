@@ -2,6 +2,7 @@ package antlr4;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import javax.crypto.spec.OAEPParameterSpec;
 import java.sql.SQLOutput;
 import java.util.ArrayList;
 
@@ -19,7 +20,7 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
     String salida = "\nVisitor Semantico";
     public String generarSalida(ParseTree tree) {
         visit(tree);
-        if (salida == "\nErrores Visitor Semantico\n") {
+        if (salida == "\n\nErrores Visitor Semantico\n") {
             salida += "No se encontraron errores\nCompilación exitosa!";
         }
         return salida;
@@ -52,7 +53,7 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
 //    // Operaciones entre tipos compatibles
     @Override
     public Void visitExpression(MiniPascalParser.ExpressionContext ctx) {
-        opAritmetica = ctx.relationaloperator() == null;
+        opAritmetica = false;
         visit(ctx.simpleExpression());
         return null;
     }
@@ -61,7 +62,7 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
     public Void visitSimpleExpression(MiniPascalParser.SimpleExpressionContext ctx) {
         visit(ctx.term());
         if (ctx.additiveoperator() != null) {
-            opAritmetica = true;
+            opAritmetica = ctx.additiveoperator().getText().equals("+");
             opAditivo = ctx.additiveoperator().getText();
             visit(ctx.simpleExpression());
         }
@@ -78,16 +79,14 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
         return null;
     }
 
-    public void validacionTipos(String tipoAsignado) {
+    public void validacionTipos(String tipoAsignado, int linea, int columna) {
         if (opAritmetica) {
-            salida += (simboloIzquierdo instanceof SimboloFuncion)
-                    ? "\nError: Los operandos de expresiones aritméticas deben ser de tipo Integer.\nValor de retorno de la función '" + simboloIzquierdo.getName() + "'."
-                    : "\nError: Los operandos de expresiones aritméticas deben ser de tipo Integer.\nAsignación a la variable '" + simboloIzquierdo.getName() + "'.";
+            salida += "\n\nError en la linea " + linea + ", columna " + columna + ": Los operandos de expresiones aritméticas deben ser de tipo Integer.";
         }
         else {
             salida += (simboloIzquierdo instanceof SimboloFuncion)
-                ? "\nError: La funcion " + simboloIzquierdo.getName() + " retorna un valor de tipo incorrecto.\nTipo a retornar: " + simboloIzquierdo.getType() + "\nTipo retornado: " + tipoAsignado
-                : "\nError: En una asignación ambos lados deben tener el mismo tipo.\nLado izquierdo: " + simboloIzquierdo.getType() + "\nLado derecho: " + tipoAsignado;
+                    ? ("\n\nError en la linea " + linea + ", columna " + columna + ": La funcion " + simboloIzquierdo.getName() + " retorna un valor de tipo incorrecto.\nTipo a retornar: " + simboloIzquierdo.getType() + "\nTipo retornado: " + tipoAsignado)
+                    : ("\n\nError en la linea " + linea + ", columna " + columna + ": En una asignación ambos lados deben tener el mismo tipo.\nLado izquierdo: " + simboloIzquierdo.getType() + "\nLado derecho: " + tipoAsignado);
         }
     }
 
@@ -103,7 +102,7 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                     if (!(simboloIzquierdo instanceof SimboloArreglo)) {
                         // Validar que el tipo sea compatible al tipo esperado
                         if (!sim.getType().equalsIgnoreCase(simboloIzquierdo.getType()))
-                            validacionTipos(sim.getType());
+                            validacionTipos(sim.getType(), ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine());
                     }
                 }
             }
@@ -113,12 +112,13 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                     if (sim.getName().equalsIgnoreCase(variable)) {
                         if (!sim.getType().equalsIgnoreCase(simboloIzquierdo.getType())) {
                             // Validar que el tipo sea compatible al tipo esperado
-                            validacionTipos(sim.getType());
+                            validacionTipos(sim.getType(), ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine());
                         }
                         break;
                     }
                 }
             }
+
             // Visitar el nodo de la variable
             visit(ctx.variable());
         }
@@ -134,7 +134,7 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                 if (simFuncion != null) {
                     // Validar si los tipos son compatibles
                     if(!simboloIzquierdo.getType().equalsIgnoreCase(simFuncion.getType())) {
-                        salida += "\nError: En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "
+                        salida += "\n\nError en la linea " + ctx.getStart().getLine() + ", columna " + ctx.getStart().getCharPositionInLine() + ": En una asignación, ambos lados deben tener el mismo tipo.\nLado izquierdo: "
                                 +simboloIzquierdo.getType() + "\nTipo retornado en el llamado: " + simFuncion.getType();
                     }
                 }
@@ -154,14 +154,14 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
             }
             // Validar el tipo de la constante con el tipo a asignar
             if (!simboloIzquierdo.getType().equalsIgnoreCase(tipoConst)) {
-                validacionTipos(tipoConst);
+                validacionTipos(tipoConst, ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine());
             }
             visit(ctx.unsignedConstant());
         }
         // CASO DE NEGACION
         else if (ctx.NOT() != null) {
             if (!simboloIzquierdo.getType().equalsIgnoreCase("Boolean")) {
-                salida += "\nError: El factor " + ctx.factor().getText() + " no es de tipo Boolean";
+                salida += "\n\nError en la linea " + ctx.getStart().getLine() + ", columna " + ctx.getStart().getCharPositionInLine() + ": El factor " + ctx.factor().getText() + " no es de tipo Boolean";
             }
             visit(ctx.factor());
         }
@@ -171,7 +171,7 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                 salida += "\nLos operandos de expresiones aritméticas deben ser de tipo Integer";
             }
             else if (!simboloIzquierdo.getType().equalsIgnoreCase("Boolean")) {
-                validacionTipos("Boolean");
+                validacionTipos("Boolean", ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine());
             }
         }
         return null;
@@ -199,8 +199,8 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                                 Simbolo simParametro = tablaSimbolos.getSimbolo(parametro, previousScope);
                                 String tipoRecibido = simParametro.getType();
                                 if (!tipoRequerido.equalsIgnoreCase(tipoRecibido)) {
-                                    salida += "\n\nLlamado a la función " + nombreFuncion;
-                                    salida += "\nError: Tipo de parámetro incompatible.\nTipo esperado: " + tipoRequerido + "\nTipo recibido: " + tipoRecibido + "\n";
+                                    salida += "\n\nError en la linea " + ctx.getStart().getLine() + ", columna " + ctx.getStart().getCharPositionInLine()
+                                            + ": Tipo de parámetro incompatible.\nTipo esperado: " + tipoRequerido + "\nTipo recibido: " + tipoRecibido + "\n";
                                 }
                             }
                             else {
@@ -216,8 +216,8 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
                                 }
                                 // Validar el tipo de la constante con el tipo a asignar
                                 if (!simboloIzquierdo.getType().equalsIgnoreCase(tipoConst)) {
-                                    salida += "\n\nLlamado a la función " + nombreFuncion;
-                                    salida += "\nError: Tipo de parámetro incompatible.\nTipo esperado: " + tipoRequerido + "\nTipo recibido: " + tipoConst + "\n";
+                                    salida += "\n\nError en la linea " + ctx.getStart().getLine() + ", columna " + ctx.getStart().getCharPositionInLine()
+                                            + ": Tipo de parámetro incompatible.\nTipo esperado: " + tipoRequerido + "\nTipo recibido: " + tipoConst + "\n";
                                 }
                             }
                         }
@@ -253,27 +253,29 @@ public class MiniPascalASTVisitorSemantico extends MiniPascalBaseVisitor<Void> {
     @Override
     public Void visitForStatement(MiniPascalParser.ForStatementContext ctx) {
         String nomVar = ctx.identifier().getText();
-        System.out.println("VALOOOOR nomvar " + nomVar);
+        simboloIzquierdo = tablaSimbolos.getSimbolo(nomVar, currentScope);
         if (simboloIzquierdo.getType().equalsIgnoreCase("Integer")) {
             String valor = ctx.forList().initialValue().getText();
-            System.out.println("VALOOOOR " + valor);
             // Es una variable
-            if (tablaSimbolos.findSimbolo(nomVar)) {
-                Simbolo variable = tablaSimbolos.getSimbolo(nomVar, currentScope);
+            if (tablaSimbolos.findSimbolo(valor)) {
+                Simbolo variable = tablaSimbolos.getSimbolo(valor, currentScope);
                 // Validar que la variable sea tipo int para asignarle el valor inicial
                 if (!variable.getType().equalsIgnoreCase("Integer")) {
-                    salida += "\nError: El iterador en un ciclo for debe ser de tipo Integer.";
+                    salida += "\n\nError en la linea " + ctx.getStart().getLine() + ", columna " + ctx.getStart().getCharPositionInLine() + ": El valor inicial de un iterador en un ciclo for debe ser de tipo Integer.";
                 }
             }
             // Es una constante
             else if (!valor.matches("\\d+")) {
                 // Validar que sea un numero
-                salida += "\nError: El iterador en un ciclo for debe iniciar en un número entero.";
+                salida += "\n\nError en la linea " + ctx.getStart().getLine() + ", columna " + ctx.getStart().getCharPositionInLine() + ": El iterador en un ciclo for debe iniciar en un número entero.";
             }
         }
         else {
-            salida += "\nError: En una asignación ambos lados deben tener el mismo tipo.\nLado izquierdo: "+ simboloIzquierdo.getType() + "\nLado derecho: Integer";
+            salida += "\n\nError en la linea " + ctx.getStart().getLine() + ", columna " + ctx.getStart().getCharPositionInLine() + ": El iterador en un ciclo for debe ser de tipo Integer.";
         }
+        visit(ctx.forList().initialValue());
+        visit(ctx.forList().finalValue());
+        visit(ctx.statement());
         return null;
     }
 }
