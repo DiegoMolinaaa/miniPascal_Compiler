@@ -52,8 +52,8 @@ public class Frame extends javax.swing.JFrame {
         txtNumLinea = new javax.swing.JTextArea();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
-        txtSalida = new javax.swing.JTextArea();
-        txtSalidaSem = new javax.swing.JTextArea();
+        txtSalida1 = new javax.swing.JTextArea();
+        txtSalida2 = new javax.swing.JTextArea();
         jSplitPane1 = new javax.swing.JSplitPane();
         jMenuBar1 = new javax.swing.JMenuBar();
         menuArchivo = new javax.swing.JMenu();
@@ -122,21 +122,21 @@ public class Frame extends javax.swing.JFrame {
         jPanel2.add(jLabel1);
         jLabel1.setBounds(40, 440, 110, 17);
 
-        txtSalida.setEditable(false);
-        txtSalida.setBackground(new java.awt.Color(51, 51, 51));
-        txtSalida.setColumns(20);
-        txtSalida.setForeground(new java.awt.Color(204, 204, 204));
-        txtSalida.setRows(5);
+        txtSalida1.setEditable(false);
+        txtSalida1.setBackground(new java.awt.Color(51, 51, 51));
+        txtSalida1.setColumns(20);
+        txtSalida1.setForeground(new java.awt.Color(204, 204, 204));
+        txtSalida1.setRows(5);
 
-        txtSalidaSem.setEditable(false);
-        txtSalidaSem.setBackground(new java.awt.Color(51, 51, 51));
-        txtSalidaSem.setColumns(20);
-        txtSalidaSem.setForeground(new java.awt.Color(204, 204, 204));
-        txtSalidaSem.setRows(5);
+        txtSalida2.setEditable(false);
+        txtSalida2.setBackground(new java.awt.Color(51, 51, 51));
+        txtSalida2.setColumns(20);
+        txtSalida2.setForeground(new java.awt.Color(204, 204, 204));
+        txtSalida2.setRows(5);
 
         jSplitPane1 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                new JScrollPane(txtSalida),
-                new JScrollPane(txtSalidaSem));
+                new JScrollPane(txtSalida1),
+                new JScrollPane(txtSalida2));
 
         jPanel2.add(jSplitPane1);
         jSplitPane1.setBounds(40, 470, 720, 200);
@@ -273,8 +273,8 @@ public class Frame extends javax.swing.JFrame {
         int seleccion = fc.showOpenDialog(null);
         archivo = fc.getSelectedFile();
         if (seleccion == JFileChooser.APPROVE_OPTION) {
-            txtSalida.setText("");
-            txtSalidaSem.setText("");
+            txtSalida1.setText("");
+            txtSalida2.setText("");
             BufferedReader br = null;
             try {
                 br = new BufferedReader(new FileReader(archivo.getPath()));
@@ -336,8 +336,8 @@ public class Frame extends javax.swing.JFrame {
         if (option == JOptionPane.OK_OPTION) {
             txtCodigo.setText("");
             txtNumLinea.setText("1");
-            txtSalida.setText("");
-            txtSalidaSem.setText("");
+            txtSalida1.setText("");
+            txtSalida2.setText("");
         }
     }//GEN-LAST:event_jMenu1MousePressed
 
@@ -345,10 +345,10 @@ public class Frame extends javax.swing.JFrame {
         // Proceso de compilacion
         TablaSimbolos tablaSimbolos = new TablaSimbolos();
         Codigo3Direcciones codigo3Direcciones = new Codigo3Direcciones();
-        txtSalida.setText("");
-        txtSalidaSem.setText("");
+        txtSalida1.setText("");
+        txtSalida2.setText("");
         if (!txtCodigo.getText().isBlank() && !txtCodigo.getText().isEmpty()) {
-            String salida = "", salidaTablaSim = "", salidaSem = "";
+            String salida1 = "", salidaTablaSim = "", salida2 = "";
             try {
                 CharStream input = CharStreams.fromString(txtCodigo.getText());
                 MiniPascalLexer lexer = new MiniPascalLexer(input);
@@ -387,18 +387,17 @@ public class Frame extends javax.swing.JFrame {
                 if (erroresEncontrados.isEmpty()) {
                     //Analisis Lexico y Sintactico
                     MiniPascalASTVisitorPersonal visitorPersonal = new MiniPascalASTVisitorPersonal();
-                    salida = visitorPersonal.generarSalida(tree);
+                    System.out.println(visitorPersonal.generarSalida(tree));
                     visitorPersonal.visit(tree);
 
                     //Tabla de Simbolos
                     MiniPascalASTVisitorTablaSimbolos visitorTablaSimbolos = new MiniPascalASTVisitorTablaSimbolos(tablaSimbolos);
-                    visitorTablaSimbolos.generarSalida(tree);
-                    tablaSimbolos.printTablaSimbolos();
+                    salida1 = "Tabla de Simbolos:";
+                    salida1 += visitorTablaSimbolos.generarSalida(tree);
 
                     //Analisis Semantico -- Pamela
                     MiniPascalASTVisitorSemantico visitorSemantico = new MiniPascalASTVisitorSemantico(tablaSimbolos);
-                    salidaSem += visitorSemantico.generarSalida(tree);
-                    tablaSimbolos.printTablaSimbolos();
+                    System.out.println(visitorSemantico.generarSalida(tree));
 
                     //Generacion de Codigo Intermedio (3 Direcciones)
                     MiniPascalASTVisitorTAC visitorTAC = new MiniPascalASTVisitorTAC(codigo3Direcciones, tablaSimbolos);
@@ -411,20 +410,24 @@ public class Frame extends javax.swing.JFrame {
                     System.out.println("Codigo generado: ");
                     generadorLLVM.generarCodigo();
                     //generadorLLVM.ejecutarCodigo();
+                    salida2 = "Código de 3 direcciones:\n";
+                    for (Quintuplo quintuplo : codigo3Direcciones.listaQuintuplos) {
+                        salida2 += quintuplo.toString() + '\n';
+                    }
 
                 }
                 else {
-                    salida += "\nErrores encontrados (" + erroresEncontrados.size() + "):\n";
+                    salida1 += "\nErrores encontrados (" + erroresEncontrados.size() + "):\n";
                     for (ErrorCompilacion error : erroresEncontrados) {
-                        salida += error.toString();
+                        salida1 += error.toString();
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
             finally {
-                txtSalidaSem.setText(salidaSem);
-                txtSalida.setText(salida);
+                txtSalida2.setText(salida2);
+                txtSalida1.setText(salida1);
             }
         }
     }//GEN-LAST:event_menuCompilarMousePressed
@@ -564,8 +567,8 @@ public class Frame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JTextArea txtSalida;
-    private javax.swing.JTextArea txtSalidaSem;
+    private javax.swing.JTextArea txtSalida1;
+    private javax.swing.JTextArea txtSalida2;
     private javax.swing.JMenuItem menuAbrirTxt;
     private javax.swing.JMenu menuArchivo;
     private javax.swing.JMenu menuCompilar;
