@@ -58,6 +58,5 @@ define i32 @main() {
   %respuesta_ptr6 = getelementptr inbounds [16 x i8], [16 x i8]* %respuesta6, i32 0, i32 0
   call void @write_string(i8* %respuesta_ptr6)
   call void @write_int(i32 %t6)
-  %integer = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.newlineFormat, i32 0, i32 0))
   ret i32 0
 }
